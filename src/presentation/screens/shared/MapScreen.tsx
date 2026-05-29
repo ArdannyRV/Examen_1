@@ -1,22 +1,16 @@
 import { useState, useEffect } from 'react';
-import { ActivityIndicator } from 'react-native';
-import styled from 'styled-components/native';
-import { useTheme } from 'styled-components/native';
+import styled, { useTheme } from 'styled-components/native';
 import { WebView } from 'react-native-webview';
+import * as Location from 'expo-location';
 import { UserRepositoryImpl } from '@/src/data/repositories/UserRepositoryImpl';
 import { GetRefugiosUseCase } from '@/src/domain/usecases/GetRefugiosUseCase';
 import AnimatedBackground from '@/src/presentation/components/ui/AnimatedBackground';
+import LoadingGato from '@/src/presentation/components/ui/LoadingGato';
 import { MainContainer } from '@/src/presentation/components/ui/Card';
 
 const Container = styled.View`
   flex: 1;
   background-color: transparent;
-`;
-
-const Loader = styled.View`
-  flex: 1;
-  justify-content: center;
-  align-items: center;
 `;
 
 const MapWrapper = styled.View`
@@ -30,7 +24,10 @@ const StyledWebView = styled(WebView)`
   flex: 1;
 `;
 
-function buildLeafletHtml(refugios: { name: string; location: string }[]): string {
+function buildLeafletHtml(
+  refugios: { name: string; location: string }[],
+  userLocation: { lat: number; lng: number }
+): string {
   const markerScript = refugios
     .map((r) => {
       const [lat, lng] = r.location.split(',').map(Number);
@@ -39,13 +36,6 @@ function buildLeafletHtml(refugios: { name: string; location: string }[]): strin
     })
     .filter(Boolean)
     .join('\n');
-
-  const firstMarker = refugios.length > 0
-    ? refugios.map((r) => r.location.split(',').map(Number)).find((c) => c.length === 2 && !isNaN(c[0]) && !isNaN(c[1]))
-    : null;
-
-  const centerLat = firstMarker?.[0] ?? 19.4326;
-  const centerLng = firstMarker?.[1] ?? -99.1332;
 
   return `
 <!DOCTYPE html>
@@ -64,11 +54,16 @@ function buildLeafletHtml(refugios: { name: string; location: string }[]): strin
 <body>
   <div id="map"></div>
   <script>
-    const map = L.map('map').setView([${centerLat}, ${centerLng}], 12);
+    const map = L.map('map').setView([${userLocation.lat}, ${userLocation.lng}], 14);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       maxZoom: 19,
       attribution: '© OpenStreetMap'
     }).addTo(map);
+    L.circleMarker([${userLocation.lat}, ${userLocation.lng}], {
+      color: '#3B82F6',
+      radius: 8,
+      fillOpacity: 1
+    }).addTo(map).bindPopup('Mi Ubicaci\u00F3n');
     ${markerScript}
   </script>
 </body>
@@ -78,7 +73,23 @@ function buildLeafletHtml(refugios: { name: string; location: string }[]): strin
 export default function MapScreen() {
   const theme = useTheme();
   const [refugios, setRefugios] = useState<{ name: string; location: string }[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const [locationLoading, setLocationLoading] = useState(true);
+  const [dataLoading, setDataLoading] = useState(true);
+
+  useEffect(() => {
+    (async () => {
+      let { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== 'granted') {
+        setUserLocation({ lat: -0.180653, lng: -78.467838 });
+        setLocationLoading(false);
+        return;
+      }
+      let location = await Location.getCurrentPositionAsync({});
+      setUserLocation({ lat: location.coords.latitude, lng: location.coords.longitude });
+      setLocationLoading(false);
+    })();
+  }, []);
 
   useEffect(() => {
     const load = async () => {
@@ -94,19 +105,17 @@ export default function MapScreen() {
       } catch {
         // silently fail
       } finally {
-        setLoading(false);
+        setDataLoading(false);
       }
     };
     load();
   }, []);
 
-  if (loading) {
+  if (!userLocation || locationLoading || dataLoading) {
     return (
       <Container>
         <AnimatedBackground />
-        <Loader>
-          <ActivityIndicator size="large" color={theme.colors.primary} />
-        </Loader>
+        <LoadingGato />
       </Container>
     );
   }
@@ -117,7 +126,7 @@ export default function MapScreen() {
       <MainContainer>
         <MapWrapper>
           <StyledWebView
-            source={{ html: buildLeafletHtml(refugios) }}
+            source={{ html: buildLeafletHtml(refugios, userLocation) }}
             javaScriptEnabled
             domStorageEnabled
             originWhitelist={['*']}

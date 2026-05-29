@@ -17,9 +17,15 @@ const mapRow = (item: any): Pet => ({
 
 export class PetRepositoryImpl implements IPetRepository {
   async getAllPets(): Promise<Pet[]> {
-    const { data, error } = await supabase.from('pets').select('*');
+    const { data, error } = await supabase
+      .from('pets')
+      .select('*, adoption_requests(status)');
     if (error) throw new Error(error.message);
-    return (data ?? []).map(mapRow);
+    const availablePets = (data ?? []).filter((pet) => {
+      if (!pet.adoption_requests || pet.adoption_requests.length === 0) return true;
+      return !pet.adoption_requests.some((req: any) => req.status === 'aprobada');
+    });
+    return availablePets.map(mapRow);
   }
 
   async getPetsByRefugio(refugioId: string): Promise<Pet[]> {
