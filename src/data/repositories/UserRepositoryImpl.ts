@@ -3,6 +3,13 @@ import { User } from '../../domain/entities/User';
 import { supabase } from '../sources/supabaseClient';
 
 export class UserRepositoryImpl implements IUserRepository {
+  async savePushToken(userId: string, token: string): Promise<void> {
+    const { error } = await supabase
+      .from('profiles')
+      .update({ expo_push_token: token })
+      .eq('id', userId);
+    if (error) throw new Error(error.message);
+  }
   async getRefugios(): Promise<User[]> {
     const { data, error } = await supabase
       .from('profiles')

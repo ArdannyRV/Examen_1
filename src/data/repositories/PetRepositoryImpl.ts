@@ -20,11 +20,16 @@ export class PetRepositoryImpl implements IPetRepository {
     const { data, error } = await supabase
       .from('pets')
       .select('*, adoption_requests(status)');
+
     if (error) throw new Error(error.message);
-    const availablePets = (data ?? []).filter((pet) => {
+
+    const availablePets = (data ?? []).filter(pet => {
       if (!pet.adoption_requests || pet.adoption_requests.length === 0) return true;
-      return !pet.adoption_requests.some((req: any) => req.status === 'aprobada');
+      return !pet.adoption_requests.some((req: any) =>
+        req.status.toLowerCase() === 'aprobada'
+      );
     });
+
     return availablePets.map(mapRow);
   }
 
@@ -33,11 +38,16 @@ export class PetRepositoryImpl implements IPetRepository {
       .from('pets')
       .select('*, adoption_requests(status)')
       .eq('refugio_id', refugioId);
+
     if (error) throw new Error(error.message);
-    const availablePets = (data ?? []).filter((pet) => {
+
+    const availablePets = (data ?? []).filter(pet => {
       if (!pet.adoption_requests || pet.adoption_requests.length === 0) return true;
-      return !pet.adoption_requests.some((req: any) => req.status === 'aprobada');
+      return !pet.adoption_requests.some((req: any) =>
+        req.status.toLowerCase() === 'aprobada'
+      );
     });
+
     return availablePets.map(mapRow);
   }
 

@@ -4,4 +4,5 @@ export interface User {
   name: string;
   role: 'adoptante' | 'refugio';
   location?: string;
+  expo_push_token?: string;
 }
