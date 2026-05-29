@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { FlatList, Alert, ActivityIndicator } from 'react-native';
+import { FlatList, Alert } from 'react-native';
 import styled from 'styled-components/native';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from 'expo-router';
@@ -7,6 +7,8 @@ import { useAuth } from '@/src/presentation/context/AuthContext';
 import { RequestRepositoryImpl } from '@/src/data/repositories/RequestRepositoryImpl';
 import { GetRequestsUseCase } from '@/src/domain/usecases/GetRequestsUseCase';
 import AnimatedBackground from '@/src/presentation/components/ui/AnimatedBackground';
+import LoadingGato from '@/src/presentation/components/ui/LoadingGato';
+import EmptyStateGato from '@/src/presentation/components/ui/EmptyStateGato';
 import { MainContainer } from '@/src/presentation/components/ui/Card';
 
 const Container = styled.View`
@@ -85,30 +87,44 @@ const BadgeText = styled.Text<{ status: 'pendiente' | 'aprobada' | 'rechazada' }
         : '#991b1b'};
 `;
 
-const EmptyState = styled.View`
-  flex: 1;
-  justify-content: center;
-  align-items: center;
-  padding-horizontal: 40px;
+const FilterRow = styled.View`
+  flex-direction: row;
+  gap: 8px;
+  margin-bottom: 16px;
 `;
 
-const EmptyText = styled.Text`
-  font-size: 16px;
-  color: ${({ theme }) => theme.colors.textLight};
-  text-align: center;
-  margin-top: 12px;
-`;
-
-const Loader = styled.View`
+const FilterChip = styled.TouchableOpacity<{ active: boolean }>`
   flex: 1;
-  justify-content: center;
+  padding-vertical: 8px;
+  border-radius: 20px;
+  background-color: ${({ active, theme }) => (active ? theme.colors.primary : 'rgba(255,255,255,0.85)')};
+  border-width: 1px;
+  border-color: ${({ active, theme }) => (active ? theme.colors.primary : theme.colors.border)};
   align-items: center;
 `;
+
+const FilterChipText = styled.Text<{ active: boolean }>`
+  font-size: 12px;
+  font-weight: 600;
+  color: ${({ active, theme }) => (active ? '#fff' : theme.colors.textLight)};
+`;
+
+const statusFilters = [
+  { key: 'todas', label: 'Todas' },
+  { key: 'pendiente', label: 'Pendientes' },
+  { key: 'aprobada', label: 'Aprobadas' },
+  { key: 'rechazada', label: 'Rechazadas' },
+] as const;
 
 export default function RequestsAdoptanteScreen() {
   const { user } = useAuth();
   const [requests, setRequests] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [statusFilter, setStatusFilter] = useState<'todas' | 'pendiente' | 'aprobada' | 'rechazada'>('todas');
+
+  const filteredRequests = requests.filter(req =>
+    statusFilter === 'todas' || req.status.toLowerCase() === statusFilter
+  );
 
   useFocusEffect(
     useCallback(() => {
@@ -134,9 +150,7 @@ export default function RequestsAdoptanteScreen() {
     return (
       <Container>
         <AnimatedBackground />
-        <Loader>
-          <ActivityIndicator size="large" color="#10B981" />
-        </Loader>
+        <LoadingGato />
       </Container>
     );
   }
@@ -146,39 +160,46 @@ export default function RequestsAdoptanteScreen() {
       <AnimatedBackground />
       <MainContainer style={{ paddingHorizontal: 16 }}>
         <Content>
-          {requests.length === 0 ? (
-            <EmptyState>
-              <Ionicons name="document-text-outline" size={64} color="#d0d5dd" />
-              <EmptyText>No has realizado solicitudes de adopción aún.</EmptyText>
-            </EmptyState>
-          ) : (
-            <FlatList
-              data={requests}
-              keyExtractor={(item) => item.id}
-              style={{ flex: 1 }}
-              contentContainerStyle={{ paddingTop: 16, paddingBottom: 120 }}
-              renderItem={({ item }) => (
-                <Card>
-                  <CardAvatar>
-                    <Ionicons name="paw" size={28} color="#9ca3af" />
-                  </CardAvatar>
-                  <CardBody>
-                    <CardName>{item.pet?.name ?? 'Mascota'}</CardName>
-                    <CardBreed>{item.pet?.breed ?? ''}</CardBreed>
-                    <Badge status={item.status}>
-                      <BadgeText status={item.status}>
-                        {item.status === 'pendiente'
-                          ? 'Pendiente'
-                          : item.status === 'aprobada'
-                            ? 'Aprobada'
-                            : 'Rechazada'}
-                      </BadgeText>
-                    </Badge>
-                  </CardBody>
-                </Card>
-              )}
-            />
-          )}
+          <FlatList
+            data={filteredRequests}
+            keyExtractor={(item) => item.id}
+            style={{ flex: 1 }}
+            contentContainerStyle={{ paddingBottom: 120, flexGrow: 1 }}
+            ListHeaderComponent={
+              <FilterRow>
+                {statusFilters.map((f) => (
+                  <FilterChip
+                    key={f.key}
+                    active={statusFilter === f.key}
+                    onPress={() => setStatusFilter(f.key)}
+                  >
+                    <FilterChipText active={statusFilter === f.key}>{f.label}</FilterChipText>
+                  </FilterChip>
+                ))}
+              </FilterRow>
+            }
+            ListEmptyComponent={<EmptyStateGato message="No has realizado solicitudes de adopción aún." />}
+            renderItem={({ item }) => (
+              <Card>
+                <CardAvatar>
+                  <Ionicons name="paw" size={28} color="#9ca3af" />
+                </CardAvatar>
+                <CardBody>
+                  <CardName>{item.pet?.name ?? 'Mascota'}</CardName>
+                  <CardBreed>{item.pet?.breed ?? ''}</CardBreed>
+                  <Badge status={item.status}>
+                    <BadgeText status={item.status}>
+                      {item.status === 'pendiente'
+                        ? 'Pendiente'
+                        : item.status === 'aprobada'
+                          ? 'Aprobada'
+                          : 'Rechazada'}
+                    </BadgeText>
+                  </Badge>
+                </CardBody>
+              </Card>
+            )}
+          />
         </Content>
       </MainContainer>
     </Container>

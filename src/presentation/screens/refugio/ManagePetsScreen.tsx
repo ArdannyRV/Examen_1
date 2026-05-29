@@ -11,6 +11,8 @@ import { AddPetUseCase } from '@/src/domain/usecases/AddPetUseCase';
 import { UpdatePetUseCase } from '@/src/domain/usecases/UpdatePetUseCase';
 import { DeletePetUseCase } from '@/src/domain/usecases/DeletePetUseCase';
 import AnimatedBackground from '@/src/presentation/components/ui/AnimatedBackground';
+import LoadingGato from '@/src/presentation/components/ui/LoadingGato';
+import EmptyStateGato from '@/src/presentation/components/ui/EmptyStateGato';
 import { MainContainer } from '@/src/presentation/components/ui/Card';
 import type { Pet } from '@/src/domain/entities/Pet';
 
@@ -93,26 +95,6 @@ const FAB = styled.TouchableOpacity`
   shadow-opacity: 0.2;
   shadow-radius: 8px;
   elevation: 6;
-`;
-
-const EmptyState = styled.View`
-  flex: 1;
-  justify-content: center;
-  align-items: center;
-  padding-horizontal: 40px;
-`;
-
-const EmptyText = styled.Text`
-  font-size: 16px;
-  color: ${({ theme }) => theme.colors.textLight};
-  text-align: center;
-  margin-top: 12px;
-`;
-
-const Loader = styled.View`
-  flex: 1;
-  justify-content: center;
-  align-items: center;
 `;
 
 const Overlay = styled.View`
@@ -417,9 +399,7 @@ export default function ManagePetsScreen() {
     return (
       <Container>
         <AnimatedBackground />
-        <Loader>
-          <ActivityIndicator size="large" color="#10B981" />
-        </Loader>
+        <LoadingGato />
       </Container>
     );
   }
@@ -429,44 +409,38 @@ export default function ManagePetsScreen() {
       <AnimatedBackground />
       <MainContainer style={{ paddingHorizontal: 16 }}>
         <Content>
-          {pets.length === 0 ? (
-            <EmptyState>
-              <Ionicons name="paw-outline" size={64} color="#d0d5dd" />
-              <EmptyText>Aún no tienes mascotas registradas. Presiona + para agregar una.</EmptyText>
-            </EmptyState>
-          ) : (
-            <FlatList
-              data={pets}
-              keyExtractor={(item) => item.id}
-              style={{ flex: 1 }}
-              contentContainerStyle={{ paddingTop: 8, paddingBottom: 120 }}
-              renderItem={({ item }) => (
-                <Card>
-                  <CardImage>
-                    {item.image_url ? (
-                      <Image source={{ uri: item.image_url }} style={{ width: 80, height: 80 }} />
-                    ) : (
-                      <Ionicons name="paw" size={28} color="#9ca3af" />
-                    )}
-                  </CardImage>
-                  <CardBody>
-                    <CardName>{item.name}</CardName>
-                    <CardBreed>
-                      {item.species} · {item.age} · {item.size}
-                    </CardBreed>
-                    <CardActions>
-                      <ActionButton onPress={() => openEdit(item)}>
-                        <Ionicons name="pencil" size={14} color="#10B981" />
-                      </ActionButton>
-                      <ActionButton danger onPress={() => handleDelete(item.id)}>
-                        <Ionicons name="trash-outline" size={14} color="#dc2626" />
-                      </ActionButton>
-                    </CardActions>
-                  </CardBody>
-                </Card>
-              )}
-            />
-          )}
+          <FlatList
+            data={pets}
+            keyExtractor={(item) => item.id}
+            style={{ flex: 1 }}
+            contentContainerStyle={{ paddingTop: 8, paddingBottom: 120, flexGrow: 1 }}
+            ListEmptyComponent={<EmptyStateGato message="Aún no tienes mascotas registradas. Presiona + para agregar una." />}
+            renderItem={({ item }) => (
+              <Card>
+                <CardImage>
+                  {item.image_url ? (
+                    <Image source={{ uri: item.image_url }} style={{ width: 80, height: 80 }} />
+                  ) : (
+                    <Ionicons name="paw" size={28} color="#9ca3af" />
+                  )}
+                </CardImage>
+                <CardBody>
+                  <CardName>{item.name}</CardName>
+                  <CardBreed>
+                    {item.species} · {item.age} · {item.size}
+                  </CardBreed>
+                  <CardActions>
+                    <ActionButton onPress={() => openEdit(item)}>
+                      <Ionicons name="pencil" size={14} color="#10B981" />
+                    </ActionButton>
+                    <ActionButton danger onPress={() => handleDelete(item.id)}>
+                      <Ionicons name="trash-outline" size={14} color="#dc2626" />
+                    </ActionButton>
+                  </CardActions>
+                </CardBody>
+              </Card>
+            )}
+          />
         </Content>
       </MainContainer>
 

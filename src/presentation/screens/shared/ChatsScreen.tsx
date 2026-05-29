@@ -1,10 +1,12 @@
 import { useState, useCallback } from 'react';
-import { FlatList, ActivityIndicator, View } from 'react-native';
+import { FlatList, View } from 'react-native';
 import styled from 'styled-components/native';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect, router } from 'expo-router';
 import { useAuth } from '@/src/presentation/context/AuthContext';
 import AnimatedBackground from '@/src/presentation/components/ui/AnimatedBackground';
+import LoadingGato from '@/src/presentation/components/ui/LoadingGato';
+import EmptyStateGato from '@/src/presentation/components/ui/EmptyStateGato';
 import Input from '@/src/presentation/components/ui/Input';
 import { MainContainer } from '@/src/presentation/components/ui/Card';
 import { UserRepositoryImpl } from '@/src/data/repositories/UserRepositoryImpl';
@@ -77,26 +79,6 @@ const ChatIcon = styled.View`
   margin-left: 8px;
 `;
 
-const EmptyState = styled.View`
-  flex: 1;
-  justify-content: center;
-  align-items: center;
-  padding-horizontal: 40px;
-`;
-
-const EmptyText = styled.Text`
-  font-size: 16px;
-  color: ${({ theme }) => theme.colors.textLight};
-  text-align: center;
-  margin-top: 12px;
-`;
-
-const Loader = styled.View`
-  flex: 1;
-  justify-content: center;
-  align-items: center;
-`;
-
 export default function ChatsScreen() {
   const { role, user } = useAuth();
   const [contacts, setContacts] = useState<User[]>([]);
@@ -131,9 +113,7 @@ export default function ChatsScreen() {
     return (
       <Container>
         <AnimatedBackground />
-        <Loader>
-          <ActivityIndicator size="large" color="#10B981" />
-        </Loader>
+        <LoadingGato />
       </Container>
     );
   }
@@ -142,51 +122,47 @@ export default function ChatsScreen() {
     <Container>
       <AnimatedBackground />
       <MainContainer style={{ paddingHorizontal: 16 }}>
-        {contacts.length === 0 ? (
-          <EmptyState>
-            <Ionicons name="chatbubbles-outline" size={64} color="#d0d5dd" />
-            <EmptyText>
-              {role === 'adoptante'
-                ? 'No hay refugios disponibles para contactar aún.'
-                : 'No hay adoptantes disponibles para contactar aún.'}
-            </EmptyText>
-          </EmptyState>
-        ) : (
-          <>
-            <View style={{ paddingBottom: 16 }}>
-              <Input
-                placeholder="Buscar por nombre..."
-                value={searchQuery}
-                onChangeText={setSearchQuery}
-              />
-            </View>
-            <FlatList
-              data={filteredContacts}
-              keyExtractor={(item) => item.id}
-              style={{ flex: 1 }}
-              contentContainerStyle={{ paddingTop: 16, paddingBottom: 120 }}
-              renderItem={({ item }) => (
-                <ContactCard
-                  activeOpacity={0.95}
-                  onPress={() => router.push(`/chat/${item.id}`)}
-                >
-                  <Avatar>
-                    <Ionicons name="person" size={24} color="#10B981" />
-                  </Avatar>
-                  <Info>
-                    <ContactName>{item.name}</ContactName>
-                    <RoleBadge>
-                      <RoleText>{item.role}</RoleText>
-                    </RoleBadge>
-                  </Info>
-                  <ChatIcon>
-                    <Ionicons name="chatbubble-ellipses" size={18} color="#fff" />
-                  </ChatIcon>
-                </ContactCard>
-              )}
+        <View style={{ paddingBottom: 16 }}>
+          <Input
+            placeholder="Buscar por nombre..."
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+          />
+        </View>
+        <FlatList
+          data={filteredContacts}
+          keyExtractor={(item) => item.id}
+          style={{ flex: 1 }}
+          contentContainerStyle={{ paddingTop: 16, paddingBottom: 120, flexGrow: 1 }}
+          ListEmptyComponent={
+            <EmptyStateGato
+              message={
+                role === 'adoptante'
+                  ? 'No hay refugios disponibles para contactar aún.'
+                  : 'No hay adoptantes disponibles para contactar aún.'
+              }
             />
-          </>
-        )}
+          }
+          renderItem={({ item }) => (
+            <ContactCard
+              activeOpacity={0.95}
+              onPress={() => router.push(`/chat/${item.id}`)}
+            >
+              <Avatar>
+                <Ionicons name="person" size={24} color="#10B981" />
+              </Avatar>
+              <Info>
+                <ContactName>{item.name}</ContactName>
+                <RoleBadge>
+                  <RoleText>{item.role}</RoleText>
+                </RoleBadge>
+              </Info>
+              <ChatIcon>
+                <Ionicons name="chatbubble-ellipses" size={18} color="#fff" />
+              </ChatIcon>
+            </ContactCard>
+          )}
+        />
       </MainContainer>
     </Container>
   );

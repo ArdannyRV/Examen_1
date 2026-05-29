@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { FlatList, ActivityIndicator } from 'react-native';
+import { FlatList } from 'react-native';
 import styled from 'styled-components/native';
 import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
@@ -9,6 +9,7 @@ import { GetMessagesUseCase } from '@/src/domain/usecases/GetMessagesUseCase';
 import { SendMessageChatUseCase } from '@/src/domain/usecases/SendMessageChatUseCase';
 import { SubscribeMessagesUseCase } from '@/src/domain/usecases/SubscribeMessagesUseCase';
 import AnimatedBackground from '@/src/presentation/components/ui/AnimatedBackground';
+import LoadingGato from '@/src/presentation/components/ui/LoadingGato';
 import type { Message } from '@/src/domain/entities/Message';
 
 const Container = styled.View`
@@ -99,12 +100,6 @@ const SendButton = styled.TouchableOpacity`
   align-items: center;
 `;
 
-const Loader = styled.View`
-  flex: 1;
-  justify-content: center;
-  align-items: center;
-`;
-
 export default function ChatRoomScreen() {
   const { id: otherUserId } = useLocalSearchParams<{ id: string }>();
   const { user } = useAuth();
@@ -184,9 +179,7 @@ export default function ChatRoomScreen() {
     return (
       <Container>
         <AnimatedBackground />
-        <Loader>
-          <ActivityIndicator size="large" color="#10B981" />
-        </Loader>
+        <LoadingGato />
       </Container>
     );
   }

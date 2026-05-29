@@ -9,6 +9,8 @@ import { GetAllPetsUseCase } from '@/src/domain/usecases/GetAllPetsUseCase';
 import { RequestRepositoryImpl } from '@/src/data/repositories/RequestRepositoryImpl';
 import { CreateRequestUseCase } from '@/src/domain/usecases/CreateRequestUseCase';
 import AnimatedBackground from '@/src/presentation/components/ui/AnimatedBackground';
+import LoadingGato from '@/src/presentation/components/ui/LoadingGato';
+import EmptyStateGato from '@/src/presentation/components/ui/EmptyStateGato';
 import { MainContainer } from '@/src/presentation/components/ui/Card';
 import type { Pet } from '@/src/domain/entities/Pet';
 
@@ -127,26 +129,6 @@ const AdoptButtonText = styled.Text`
   font-weight: 700;
 `;
 
-const Loader = styled.View`
-  flex: 1;
-  justify-content: center;
-  align-items: center;
-`;
-
-const EmptyState = styled.View`
-  flex: 1;
-  justify-content: center;
-  align-items: center;
-  padding-horizontal: 40px;
-`;
-
-const EmptyText = styled.Text`
-  font-size: 16px;
-  color: ${({ theme }) => theme.colors.textLight};
-  text-align: center;
-  margin-top: 12px;
-`;
-
 const categories = ['Todos', 'Perros', 'Gatos', 'Aves', 'Reptiles', 'Peces', 'Roedores'];
 
 const speciesMap: Record<string, string> = {
@@ -228,9 +210,7 @@ export default function LobbyScreen() {
     return (
       <Container>
         <AnimatedBackground />
-        <Loader>
-          <ActivityIndicator size="large" color="#10B981" />
-        </Loader>
+        <LoadingGato />
       </Container>
     );
   }
@@ -273,53 +253,47 @@ export default function LobbyScreen() {
 
         <SectionTitle>Mascotas disponibles</SectionTitle>
 
-        {filteredPets.length === 0 ? (
-          <EmptyState>
-            <Ionicons name="paw-outline" size={64} color="#d0d5dd" />
-            <EmptyText>No se encontraron mascotas con los filtros actuales.</EmptyText>
-          </EmptyState>
-        ) : (
-          <FlatList
-            data={filteredPets}
-            keyExtractor={(item) => item.id}
-            numColumns={2}
-            style={{ flex: 1 }}
-            contentContainerStyle={{ flexGrow: 1, paddingBottom: 120, paddingTop: 16 }}
-            renderItem={({ item }) => (
-              <PetCard>
-                {item.image_url ? (
-                  <CardImage source={{ uri: item.image_url }} />
-                ) : (
-                  <CardImageFallback>
-                    <Ionicons name="paw" size={32} color="#9ca3af" />
-                  </CardImageFallback>
+        <FlatList
+          data={filteredPets}
+          keyExtractor={(item) => item.id}
+          numColumns={2}
+          style={{ flex: 1 }}
+          contentContainerStyle={{ flexGrow: 1, paddingBottom: 120, paddingTop: 16 }}
+          ListEmptyComponent={<EmptyStateGato message="No se encontraron mascotas con los filtros actuales." />}
+          renderItem={({ item }) => (
+            <PetCard>
+              {item.image_url ? (
+                <CardImage source={{ uri: item.image_url }} />
+              ) : (
+                <CardImageFallback>
+                  <Ionicons name="paw" size={32} color="#9ca3af" />
+                </CardImageFallback>
+              )}
+              <CardBody>
+                <CardName numberOfLines={1}>{item.name}</CardName>
+                <CardRow>
+                  <CardLabel>Especie: {item.species}</CardLabel>
+                </CardRow>
+                <CardRow>
+                  <CardLabel>Edad: {item.age}</CardLabel>
+                </CardRow>
+                {role === 'adoptante' && (
+                  <AdoptButton
+                    onPress={() => handleAdopt(item)}
+                    disabled={adoptingId === item.id}
+                  >
+                    {adoptingId === item.id ? (
+                      <ActivityIndicator color="#fff" size="small" />
+                    ) : (
+                      <AdoptButtonText>Adoptar</AdoptButtonText>
+                    )}
+                  </AdoptButton>
                 )}
-                <CardBody>
-                  <CardName numberOfLines={1}>{item.name}</CardName>
-                  <CardRow>
-                    <CardLabel>Especie: {item.species}</CardLabel>
-                  </CardRow>
-                  <CardRow>
-                    <CardLabel>Edad: {item.age}</CardLabel>
-                  </CardRow>
-                  {role === 'adoptante' && (
-                    <AdoptButton
-                      onPress={() => handleAdopt(item)}
-                      disabled={adoptingId === item.id}
-                    >
-                      {adoptingId === item.id ? (
-                        <ActivityIndicator color="#fff" size="small" />
-                      ) : (
-                        <AdoptButtonText>Adoptar</AdoptButtonText>
-                      )}
-                    </AdoptButton>
-                  )}
-                </CardBody>
-              </PetCard>
-            )}
-            showsVerticalScrollIndicator={false}
-          />
-        )}
+              </CardBody>
+            </PetCard>
+          )}
+          showsVerticalScrollIndicator={false}
+        />
       </MainContainer>
     </Container>
   );
