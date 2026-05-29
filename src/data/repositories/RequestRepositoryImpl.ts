@@ -63,6 +63,23 @@ export class RequestRepositoryImpl implements IRequestRepository {
     if (error) throw new Error(error.message);
   }
 
+  async createRequest(petId: string, adoptanteId: string): Promise<void> {
+    const { error } = await supabase
+      .from('adoption_requests')
+      .insert({ pet_id: petId, adoptante_id: adoptanteId, status: 'pendiente' });
+
+    if (error) throw new Error(error.message);
+  }
+
+  async updateRequestStatus(requestId: string, newStatus: 'aprobada' | 'rechazada'): Promise<void> {
+    const { error } = await supabase
+      .from('adoption_requests')
+      .update({ status: newStatus })
+      .eq('id', requestId);
+
+    if (error) throw new Error(error.message);
+  }
+
   private mapRequest(item: any): AdoptionRequest {
     return {
       id: item.id,

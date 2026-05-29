@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 import { FlatList, Alert, ActivityIndicator } from 'react-native';
 import styled from 'styled-components/native';
 import { Ionicons } from '@expo/vector-icons';
+import { useFocusEffect } from 'expo-router';
 import { useAuth } from '@/src/presentation/context/AuthContext';
 import { RequestRepositoryImpl } from '@/src/data/repositories/RequestRepositoryImpl';
 import { GetRequestsUseCase } from '@/src/domain/usecases/GetRequestsUseCase';
@@ -124,22 +125,25 @@ export default function RequestsAdoptanteScreen() {
   const [requests, setRequests] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const load = async () => {
-      if (!user) return;
-      try {
-        const repository = new RequestRepositoryImpl();
-        const useCase = new GetRequestsUseCase(repository);
-        const data = await useCase.execute(user.id, 'adoptante');
-        setRequests(data);
-      } catch {
-        Alert.alert('Error', 'No se pudieron cargar las solicitudes');
-      } finally {
-        setLoading(false);
-      }
-    };
-    load();
-  }, [user]);
+  useFocusEffect(
+    useCallback(() => {
+      const load = async () => {
+        if (!user) return;
+        setLoading(true);
+        try {
+          const repository = new RequestRepositoryImpl();
+          const useCase = new GetRequestsUseCase(repository);
+          const data = await useCase.execute(user.id, 'adoptante');
+          setRequests(data);
+        } catch {
+          Alert.alert('Error', 'No se pudieron cargar las solicitudes');
+        } finally {
+          setLoading(false);
+        }
+      };
+      load();
+    }, [user])
+  );
 
   if (loading) {
     return (

@@ -1,10 +1,12 @@
-import { useState, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 import { FlatList, Alert, ActivityIndicator } from 'react-native';
 import styled from 'styled-components/native';
 import { Ionicons } from '@expo/vector-icons';
+import { useFocusEffect } from 'expo-router';
 import { useAuth } from '@/src/presentation/context/AuthContext';
 import { RequestRepositoryImpl } from '@/src/data/repositories/RequestRepositoryImpl';
 import { GetRequestsUseCase } from '@/src/domain/usecases/GetRequestsUseCase';
+import { UpdateRequestStatusUseCase } from '@/src/domain/usecases/UpdateRequestStatusUseCase';
 
 const Container = styled.View`
   flex: 1;
@@ -191,27 +193,31 @@ export default function RequestsRefugioScreen() {
   const [loading, setLoading] = useState(true);
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
-  useEffect(() => {
-    const load = async () => {
+  useFocusEffect(
+    useCallback(() => {
       if (!user) return;
-      try {
-        const repository = new RequestRepositoryImpl();
-        const useCase = new GetRequestsUseCase(repository);
-        const data = await useCase.execute(user.id, 'refugio');
-        setRequests(data);
-      } catch {
-        Alert.alert('Error', 'No se pudieron cargar las solicitudes');
-      } finally {
-        setLoading(false);
-      }
-    };
-    load();
-  }, [user]);
+      setLoading(true);
+      const load = async () => {
+        try {
+          const repository = new RequestRepositoryImpl();
+          const useCase = new GetRequestsUseCase(repository);
+          const data = await useCase.execute(user.id, 'refugio');
+          setRequests(data);
+        } catch {
+          Alert.alert('Error', 'No se pudieron cargar las solicitudes');
+        } finally {
+          setLoading(false);
+        }
+      };
+      load();
+    }, [user])
+  );
 
   const handleAccept = async (id: string) => {
     try {
-      const repo = new RequestRepositoryImpl();
-      await repo.updateStatus(id, 'aprobada');
+      const repository = new RequestRepositoryImpl();
+      const useCase = new UpdateRequestStatusUseCase(repository);
+      await useCase.execute(id, 'aprobada');
       setRequests((prev) =>
         prev.map((r) => (r.id === id ? { ...r, status: 'aprobada' } : r))
       );
@@ -223,8 +229,9 @@ export default function RequestsRefugioScreen() {
 
   const handleReject = async (id: string) => {
     try {
-      const repo = new RequestRepositoryImpl();
-      await repo.updateStatus(id, 'rechazada');
+      const repository = new RequestRepositoryImpl();
+      const useCase = new UpdateRequestStatusUseCase(repository);
+      await useCase.execute(id, 'rechazada');
       setRequests((prev) =>
         prev.map((r) => (r.id === id ? { ...r, status: 'rechazada' } : r))
       );

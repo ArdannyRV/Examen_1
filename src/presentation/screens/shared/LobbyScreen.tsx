@@ -8,6 +8,8 @@ import { PetRepositoryImpl } from '@/src/data/repositories/PetRepositoryImpl';
 import { GetAllPetsUseCase } from '@/src/domain/usecases/GetAllPetsUseCase';
 import { AuthRepositoryImpl } from '@/src/data/repositories/AuthRepositoryImpl';
 import { LogoutUseCase } from '@/src/domain/usecases/LogoutUseCase';
+import { RequestRepositoryImpl } from '@/src/data/repositories/RequestRepositoryImpl';
+import { CreateRequestUseCase } from '@/src/domain/usecases/CreateRequestUseCase';
 import type { Pet } from '@/src/domain/entities/Pet';
 
 const screenWidth = Dimensions.get('window').width;
@@ -187,11 +189,12 @@ const speciesMap: Record<string, string> = {
 };
 
 export default function LobbyScreen() {
-  const { role } = useAuth();
+  const { user, role } = useAuth();
   const [search, setSearch] = useState('');
   const [activeCategory, setActiveCategory] = useState('Todos');
   const [pets, setPets] = useState<Pet[]>([]);
   const [loading, setLoading] = useState(true);
+  const [adoptingId, setAdoptingId] = useState<string | null>(null);
 
   useEffect(() => {
     const loadPets = async () => {
@@ -220,11 +223,34 @@ export default function LobbyScreen() {
     }
   };
 
-  const handleAdopt = (petName: string) => {
+  const handleAdopt = (pet: Pet) => {
     Alert.alert(
-      'Solicitud enviada',
-      `Has solicitado adoptar a ${petName}. El refugio revisará tu solicitud.`,
-      [{ text: 'OK', onPress: () => router.push('/(tabs)/solicitudes') }]
+      'Confirmar solicitud',
+      `¿Deseas enviar una solicitud de adopción para ${pet.name}?`,
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Enviar',
+          onPress: async () => {
+            if (!user) return;
+            setAdoptingId(pet.id);
+            try {
+              const repository = new RequestRepositoryImpl();
+              const useCase = new CreateRequestUseCase(repository);
+              await useCase.execute(pet.id, user.id);
+              Alert.alert(
+                'Solicitud enviada',
+                `Has solicitado adoptar a ${pet.name}. El refugio revisará tu solicitud.`,
+                [{ text: 'OK', onPress: () => router.push('/(tabs)/solicitudes') }]
+              );
+            } catch {
+              Alert.alert('Error', 'No se pudo enviar la solicitud. Intenta de nuevo.');
+            } finally {
+              setAdoptingId(null);
+            }
+          },
+        },
+      ]
     );
   };
 
@@ -313,8 +339,15 @@ export default function LobbyScreen() {
                   <CardLabel>Edad: {item.age}</CardLabel>
                 </CardRow>
                 {role === 'adoptante' && (
-                  <AdoptButton onPress={() => handleAdopt(item.name)}>
-                    <AdoptButtonText>Adoptar</AdoptButtonText>
+                  <AdoptButton
+                    onPress={() => handleAdopt(item)}
+                    disabled={adoptingId === item.id}
+                  >
+                    {adoptingId === item.id ? (
+                      <ActivityIndicator color="#fff" size="small" />
+                    ) : (
+                      <AdoptButtonText>Adoptar</AdoptButtonText>
+                    )}
                   </AdoptButton>
                 )}
               </CardBody>
