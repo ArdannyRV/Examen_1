@@ -1,4 +1,4 @@
-import { ActivityIndicator, Alert, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Alert, TouchableOpacity, View, Text } from 'react-native';
 import { Tabs, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '@/src/presentation/context/AuthContext';
@@ -20,7 +20,7 @@ const tabs: { name: string; label: string; icon: IoniconsName }[] = [
 
 function TabBarButton(props: {
   children: React.ReactNode;
-  onPress?: () => void;
+  onPress?: (e: any) => void;
   accessibilityState?: { selected?: boolean };
 }) {
   const focused = props.accessibilityState?.selected ?? false;
@@ -48,7 +48,7 @@ function TabBarButton(props: {
 }
 
 export default function TabsLayout() {
-  const { role, loading } = useAuth();
+  const { user, role, loading } = useAuth();
   const theme = useTheme();
   const router = useRouter();
 
@@ -73,65 +73,80 @@ export default function TabsLayout() {
 
   return (
     <Tabs
-      screenOptions={{
-        headerShown: true,
-        headerStyle: { backgroundColor: 'transparent', elevation: 0, shadowOpacity: 0 },
-        headerTransparent: false,
-        tabBarShowLabel: true,
-        tabBarActiveTintColor: theme.colors.primary,
-        tabBarInactiveTintColor: theme.colors.textMuted,
-        tabBarLabelStyle: {
-          fontSize: 11,
-          fontWeight: '600',
-          marginTop: 2,
-        },
-        tabBarStyle: {
-          backgroundColor: theme.colors.surface,
-          borderTopWidth: 0,
-          elevation: 10,
-          shadowColor: '#000',
-          shadowOffset: { width: 0, height: -2 },
-          shadowOpacity: 0.08,
-          shadowRadius: 12,
-          height: 70,
-          paddingTop: 6,
-          paddingBottom: 8,
-        },
-        tabBarButton: (props) => <TabBarButton {...props} />,
-      }}
-    >
-      {tabs.map((tab) => {
-        let href: string | null = `/${tab.name}`;
+        screenOptions={{
+          headerShown: true,
+          headerStyle: {
+            backgroundColor: theme.colors.primary,
+            elevation: 5,
+            shadowOpacity: 0.2,
+          },
+          headerTintColor: '#FFFFFF',
+          headerTitleAlign: 'center',
+          headerTitle: (props: { children: string }) => (
+            <View style={{ alignItems: 'center' }}>
+              <Text style={{ fontSize: 18, fontWeight: 'bold', color: '#FFFFFF' }}>
+                {props.children}
+              </Text>
+              <Text style={{ fontSize: 13, color: 'rgba(255,255,255,0.8)', marginTop: -2 }}>
+                {user?.user_metadata?.name || (role === 'refugio' ? 'Refugio' : 'Adoptante')}
+              </Text>
+            </View>
+          ),
+          tabBarShowLabel: true,
+          tabBarActiveTintColor: theme.colors.primary,
+          tabBarInactiveTintColor: theme.colors.textMuted,
+          tabBarLabelStyle: {
+            fontSize: 11,
+            fontWeight: '600',
+            marginTop: 2,
+          },
+          tabBarStyle: {
+            backgroundColor: theme.colors.surface,
+            borderTopWidth: 0,
+            elevation: 10,
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: -2 },
+            shadowOpacity: 0.08,
+            shadowRadius: 12,
+            height: 70,
+            paddingTop: 6,
+            paddingBottom: 8,
+          },
+          tabBarButton: (props) => <TabBarButton {...props} />,
+        }}
+      >
+        {tabs.map((tab) => {
+          let href: string | null = `/${tab.name}`;
 
-        if (tab.name === 'mascotas' && role !== 'refugio') href = null;
-        if (tab.name === 'asistente' && role !== 'adoptante') href = null;
+          if (tab.name === 'mascotas' && role !== 'refugio') href = null;
+          if (tab.name === 'asistente' && role !== 'adoptante') href = null;
 
-        return (
-          <Tabs.Screen
-            key={tab.name}
-            name={tab.name}
-            options={{
-              title: tab.label,
-              href,
-              headerRight: tab.name === 'lobby' ? () => (
-                <TouchableOpacity
-                  onPress={handleLogout}
-                  style={{ marginRight: 16 }}
-                >
-                  <Ionicons name="log-out-outline" size={22} color={theme.colors.textMuted} />
-                </TouchableOpacity>
-              ) : undefined,
-              tabBarIcon: ({ color }) => (
-                <Ionicons
-                  name={tab.icon}
-                  size={22}
-                  color={color}
-                />
-              ),
-            }}
-          />
-        );
-      })}
+          return (
+            <Tabs.Screen
+              key={tab.name}
+              name={tab.name}
+              options={{
+                title: tab.label,
+                href,
+                headerRight: tab.name === 'lobby' ? () => (
+                  <TouchableOpacity
+                    onPress={handleLogout}
+                    style={{ marginRight: 16 }}
+                  >
+                    <Ionicons name="log-out-outline" size={22} color="#FFFFFF" />
+                  </TouchableOpacity>
+                ) : undefined,
+                tabBarIcon: ({ color }) => (
+                  <Ionicons
+                    name={tab.icon}
+                    size={22}
+                    color={color}
+                  />
+                ),
+              }}
+            />
+          );
+        })}
     </Tabs>
   );
 }

@@ -15,17 +15,10 @@ export const MainContainer = styled.View`
   flex: 1;
   width: 100%;
   background-color: ${({ theme }) => theme.colors.surface};
-  border-top-left-radius: 40px;
-  border-top-right-radius: 40px;
   padding-horizontal: ${({ theme }) => theme.spacing.lg}px;
   padding-top: ${({ theme }) => theme.spacing.lg}px;
-  padding-bottom: 0;          
+  padding-bottom: 0;
   overflow: hidden;
-  shadow-color: #000;
-  shadow-offset: 0px -4px;
-  shadow-opacity: 0.1;
-  shadow-radius: 16px;
-  elevation: 10;
 `;
 
 export const GlassCard = styled.View`

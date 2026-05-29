@@ -72,7 +72,6 @@ const PetCard = styled.View`
   background-color: ${({ theme }) => theme.colors.surface};
   border-radius: 14px;
   margin-bottom: 16px;
-  margin-horizontal: 6px;
   shadow-color: #000;
   shadow-offset: 0px 2px;
   shadow-opacity: 0.06;
@@ -262,7 +261,8 @@ export default function LobbyScreen() {
           keyExtractor={(item) => item.id}
           numColumns={2}
           style={{ flex: 1 }}
-          contentContainerStyle={{ flexGrow: 1, paddingBottom: 120, paddingTop: 16 }}
+          contentContainerStyle={{ flexGrow: 1, paddingBottom: 120, paddingTop: 16, paddingHorizontal: 8 }}
+          columnWrapperStyle={{ justifyContent: 'space-between', gap: 12 }}
           ListEmptyComponent={<EmptyStateGato message="No se encontraron mascotas con los filtros actuales." />}
           renderItem={({ item }) => (
             <PetCard>
