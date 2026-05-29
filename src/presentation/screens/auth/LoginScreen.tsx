@@ -110,7 +110,7 @@ export default function LoginScreen() {
             ¿Olvidaste tu contraseña?
           </LinkText>
 
-          <LinkText onPress={() => router.replace('/register')}>
+          <LinkText onPress={() => router.replace('/(auth)/register')}>
             ¿No tienes cuenta? Regístrate
           </LinkText>
         </GlassCard>

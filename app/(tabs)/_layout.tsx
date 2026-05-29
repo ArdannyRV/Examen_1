@@ -10,7 +10,7 @@ import type { ComponentProps } from 'react';
 type IoniconsName = ComponentProps<typeof Ionicons>['name'];
 
 const tabs: { name: string; label: string; icon: IoniconsName }[] = [
-  { name: 'lobby', label: 'Lobby', icon: 'home' },,
+  { name: 'lobby', label: 'Lobby', icon: 'home' },
   { name: 'mapa', label: 'Mapa', icon: 'map' },
   { name: 'mascotas', label: 'Mascotas', icon: 'paw' },
   { name: 'asistente', label: 'Asistente', icon: 'chatbubble-ellipses' },
