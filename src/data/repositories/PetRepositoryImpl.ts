@@ -23,11 +23,21 @@ export class PetRepositoryImpl implements IPetRepository {
 
     if (error) throw new Error(error.message);
 
+    console.log("PETS DATA:", JSON.stringify(data?.slice(0, 2), null, 2));
+
     const availablePets = (data ?? []).filter(pet => {
-      if (!pet.adoption_requests || pet.adoption_requests.length === 0) return true;
-      return !pet.adoption_requests.some((req: any) =>
-        req.status.toLowerCase() === 'aprobada'
-      );
+      if (!pet.adoption_requests) return true;
+
+      const requests = Array.isArray(pet.adoption_requests)
+        ? pet.adoption_requests
+        : [pet.adoption_requests];
+
+      if (requests.length === 0) return true;
+
+      return !requests.some((req: any) => {
+        const status = String(req.status || '').trim().toLowerCase();
+        return status === 'aprobada' || status === 'aceptada';
+      });
     });
 
     return availablePets.map(mapRow);
@@ -42,10 +52,18 @@ export class PetRepositoryImpl implements IPetRepository {
     if (error) throw new Error(error.message);
 
     const availablePets = (data ?? []).filter(pet => {
-      if (!pet.adoption_requests || pet.adoption_requests.length === 0) return true;
-      return !pet.adoption_requests.some((req: any) =>
-        req.status.toLowerCase() === 'aprobada'
-      );
+      if (!pet.adoption_requests) return true;
+
+      const requests = Array.isArray(pet.adoption_requests)
+        ? pet.adoption_requests
+        : [pet.adoption_requests];
+
+      if (requests.length === 0) return true;
+
+      return !requests.some((req: any) => {
+        const status = String(req.status || '').trim().toLowerCase();
+        return status === 'aprobada' || status === 'aceptada';
+      });
     });
 
     return availablePets.map(mapRow);
