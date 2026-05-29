@@ -2,11 +2,11 @@ import { FlatList } from 'react-native';
 import styled from 'styled-components/native';
 import { Ionicons } from '@expo/vector-icons';
 import AnimatedBackground from '@/src/presentation/components/ui/AnimatedBackground';
-import GlassHeader from '@/src/presentation/components/ui/GlassHeader';
 import { MainContainer } from '@/src/presentation/components/ui/Card';
 
 const Container = styled.View`
   flex: 1;
+  background-color: transparent;
 `;
 
 const Card = styled.TouchableOpacity`
@@ -94,13 +94,11 @@ export default function ChatsScreen() {
   return (
     <Container>
       <AnimatedBackground />
-      <GlassHeader title="Chats" />
-
       <MainContainer style={{ paddingHorizontal: 16 }}>
         <FlatList
           data={mockChats}
           keyExtractor={(item) => item.id}
-          contentContainerStyle={{ flexGrow: 1, paddingTop: 16, paddingBottom: 24 }}
+          contentContainerStyle={{ flexGrow: 1, paddingTop: 16, paddingBottom: 120 }}
           renderItem={({ item }) => (
             <Card activeOpacity={0.95}>
               <Avatar>

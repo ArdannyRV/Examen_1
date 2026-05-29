@@ -11,12 +11,12 @@ import { AddPetUseCase } from '@/src/domain/usecases/AddPetUseCase';
 import { UpdatePetUseCase } from '@/src/domain/usecases/UpdatePetUseCase';
 import { DeletePetUseCase } from '@/src/domain/usecases/DeletePetUseCase';
 import AnimatedBackground from '@/src/presentation/components/ui/AnimatedBackground';
-import GlassHeader from '@/src/presentation/components/ui/GlassHeader';
 import { MainContainer } from '@/src/presentation/components/ui/Card';
 import type { Pet } from '@/src/domain/entities/Pet';
 
 const Container = styled.View`
   flex: 1;
+  background-color: transparent;
 `;
 
 const Content = styled.View`
@@ -427,8 +427,6 @@ export default function ManagePetsScreen() {
   return (
     <Container>
       <AnimatedBackground />
-      <GlassHeader title="Mis Mascotas" />
-
       <MainContainer style={{ paddingHorizontal: 16 }}>
         <Content>
           {pets.length === 0 ? (
@@ -440,7 +438,7 @@ export default function ManagePetsScreen() {
             <FlatList
               data={pets}
               keyExtractor={(item) => item.id}
-              contentContainerStyle={{ paddingTop: 8, paddingBottom: 100 }}
+              contentContainerStyle={{ paddingTop: 8, paddingBottom: 120 }}
               renderItem={({ item }) => (
                 <Card>
                   <CardImage>

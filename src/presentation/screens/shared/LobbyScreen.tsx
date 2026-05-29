@@ -6,12 +6,9 @@ import { router } from 'expo-router';
 import { useAuth } from '@/src/presentation/context/AuthContext';
 import { PetRepositoryImpl } from '@/src/data/repositories/PetRepositoryImpl';
 import { GetAllPetsUseCase } from '@/src/domain/usecases/GetAllPetsUseCase';
-import { AuthRepositoryImpl } from '@/src/data/repositories/AuthRepositoryImpl';
-import { LogoutUseCase } from '@/src/domain/usecases/LogoutUseCase';
 import { RequestRepositoryImpl } from '@/src/data/repositories/RequestRepositoryImpl';
 import { CreateRequestUseCase } from '@/src/domain/usecases/CreateRequestUseCase';
 import AnimatedBackground from '@/src/presentation/components/ui/AnimatedBackground';
-import GlassHeader from '@/src/presentation/components/ui/GlassHeader';
 import { MainContainer } from '@/src/presentation/components/ui/Card';
 import type { Pet } from '@/src/domain/entities/Pet';
 
@@ -20,6 +17,7 @@ const cardWidth = (screenWidth - 56) / 2;
 
 const Container = styled.View`
   flex: 1;
+  background-color: transparent;
 `;
 
 const SearchInput = styled.TextInput`
@@ -31,7 +29,7 @@ const SearchInput = styled.TextInput`
   color: #1F2937;
   border-width: 1px;
   border-color: rgba(16, 185, 129, 0.2);
-  margin-top: 14px;
+  margin-bottom: 24px;
 `;
 
 const FilterRow = styled.View`
@@ -39,12 +37,13 @@ const FilterRow = styled.View`
   justify-content: center;
   gap: 8px;
   margin-bottom: 8px;
+  margin-top: 8px;
 `;
 
 const CategoryChip = styled.TouchableOpacity<{ active: boolean }>`
   flex: 1;
   max-width: ${(screenWidth - 72) / 4}px;
-  padding-vertical: 10px;
+  padding-vertical: 6px;
   border-radius: 20px;
   background-color: ${({ active, theme }) => (active ? theme.colors.primary : 'rgba(255,255,255,0.85)')};
   border-width: 1px;
@@ -148,15 +147,6 @@ const EmptyText = styled.Text`
   margin-top: 12px;
 `;
 
-const LogoutIconBtn = styled.TouchableOpacity`
-  width: 40px;
-  height: 40px;
-  border-radius: 20px;
-  background-color: rgba(16, 185, 129, 0.15);
-  justify-content: center;
-  align-items: center;
-`;
-
 const categories = ['Todos', 'Perros', 'Gatos', 'Aves', 'Reptiles', 'Peces', 'Roedores'];
 
 const speciesMap: Record<string, string> = {
@@ -192,17 +182,6 @@ export default function LobbyScreen() {
     };
     loadPets();
   }, []);
-
-  const handleLogout = async () => {
-    try {
-      const repository = new AuthRepositoryImpl();
-      const useCase = new LogoutUseCase(repository);
-      await useCase.execute();
-      router.replace('/(auth)/login');
-    } catch {
-      Alert.alert('Error', 'No se pudo cerrar la sesión');
-    }
-  };
 
   const handleAdopt = (pet: Pet) => {
     Alert.alert(
@@ -262,23 +241,13 @@ export default function LobbyScreen() {
   return (
     <Container>
       <AnimatedBackground />
-      <GlassHeader
-        title="PetAdopt"
-        rightIcon={
-          <LogoutIconBtn onPress={handleLogout}>
-            <Ionicons name="log-out-outline" size={22} color="#10B981" />
-          </LogoutIconBtn>
-        }
-      >
+      <MainContainer>
         <SearchInput
           placeholder="Buscar por especie o nombre..."
           placeholderTextColor="#9CA3AF"
           value={search}
           onChangeText={setSearch}
         />
-      </GlassHeader>
-
-      <MainContainer>
         <FilterRow>
           {firstRow.map((cat) => (
             <CategoryChip
@@ -314,7 +283,7 @@ export default function LobbyScreen() {
             data={filteredPets}
             keyExtractor={(item) => item.id}
             numColumns={2}
-            contentContainerStyle={{ flexGrow: 1, paddingBottom: 24 }}
+            contentContainerStyle={{ flexGrow: 1, paddingBottom: 120, paddingTop: 16 }}
             renderItem={({ item }) => (
               <PetCard>
                 {item.image_url ? (

@@ -1,6 +1,5 @@
-import { ActivityIndicator, View } from 'react-native';
+import { ActivityIndicator, TouchableOpacity, View } from 'react-native';
 import { Tabs } from 'expo-router';
-import { TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '@/src/presentation/context/AuthContext';
 import { useTheme } from 'styled-components/native';
@@ -61,7 +60,9 @@ export default function TabsLayout() {
   return (
     <Tabs
       screenOptions={{
-        headerShown: false,
+        headerShown: true,
+        headerStyle: { backgroundColor: 'transparent', elevation: 0, shadowOpacity: 0 },
+        headerTransparent: false,
         tabBarShowLabel: true,
         tabBarActiveTintColor: '#fff',
         tabBarInactiveTintColor: theme.colors.textLight,

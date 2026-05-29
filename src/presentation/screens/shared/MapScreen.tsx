@@ -3,15 +3,14 @@ import { ActivityIndicator } from 'react-native';
 import styled from 'styled-components/native';
 import { useTheme } from 'styled-components/native';
 import { WebView } from 'react-native-webview';
-import { Ionicons } from '@expo/vector-icons';
 import { UserRepositoryImpl } from '@/src/data/repositories/UserRepositoryImpl';
 import { GetRefugiosUseCase } from '@/src/domain/usecases/GetRefugiosUseCase';
 import AnimatedBackground from '@/src/presentation/components/ui/AnimatedBackground';
-import GlassHeader from '@/src/presentation/components/ui/GlassHeader';
 import { MainContainer } from '@/src/presentation/components/ui/Card';
 
 const Container = styled.View`
   flex: 1;
+  background-color: transparent;
 `;
 
 const Loader = styled.View`
@@ -115,13 +114,6 @@ export default function MapScreen() {
   return (
     <Container>
       <AnimatedBackground />
-      <GlassHeader
-        title="Refugios Cercanos"
-        leftIcon={
-          <Ionicons name="map" size={22} color="#10B981" />
-        }
-      />
-
       <MainContainer>
         <MapWrapper>
           <StyledWebView

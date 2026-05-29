@@ -17,7 +17,6 @@ export const MainContainer = styled.View`
   background-color: ${({ theme }) => theme.colors.surface};
   border-top-left-radius: 40px;
   border-top-right-radius: 40px;
-  margin-top: -24px;
   padding-horizontal: ${({ theme }) => theme.spacing.lg}px;
   padding-top: ${({ theme }) => theme.spacing.lg}px;
   padding-bottom: 80px;

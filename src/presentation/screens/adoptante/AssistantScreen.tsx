@@ -3,11 +3,11 @@ import { FlatList } from 'react-native';
 import styled from 'styled-components/native';
 import { Ionicons } from '@expo/vector-icons';
 import AnimatedBackground from '@/src/presentation/components/ui/AnimatedBackground';
-import GlassHeader from '@/src/presentation/components/ui/GlassHeader';
 import { MainContainer } from '@/src/presentation/components/ui/Card';
 
 const Container = styled.View`
   flex: 1;
+  background-color: transparent;
 `;
 
 const MessageList = styled(FlatList<Message>)`
@@ -123,13 +123,11 @@ export default function AssistantScreen() {
   return (
     <Container>
       <AnimatedBackground />
-      <GlassHeader title="Asistente IA" />
-
       <MainContainer style={{ paddingHorizontal: 16, paddingBottom: 0 }}>
         <MessageList
           data={messages}
           keyExtractor={(item: Message) => item.id}
-          contentContainerStyle={{ paddingVertical: 16 }}
+          contentContainerStyle={{ paddingVertical: 16, paddingBottom: 120 }}
           renderItem={({ item }: { item: Message }) => (
             <BubbleRow isUser={item.isUser}>
               <Bubble isUser={item.isUser}>

@@ -7,11 +7,11 @@ import { useAuth } from '@/src/presentation/context/AuthContext';
 import { RequestRepositoryImpl } from '@/src/data/repositories/RequestRepositoryImpl';
 import { GetRequestsUseCase } from '@/src/domain/usecases/GetRequestsUseCase';
 import AnimatedBackground from '@/src/presentation/components/ui/AnimatedBackground';
-import GlassHeader from '@/src/presentation/components/ui/GlassHeader';
 import { MainContainer } from '@/src/presentation/components/ui/Card';
 
 const Container = styled.View`
   flex: 1;
+  background-color: transparent;
 `;
 
 const Content = styled.View`
@@ -144,8 +144,6 @@ export default function RequestsAdoptanteScreen() {
   return (
     <Container>
       <AnimatedBackground />
-      <GlassHeader title="Mis Solicitudes" />
-
       <MainContainer style={{ paddingHorizontal: 16 }}>
         <Content>
           {requests.length === 0 ? (
@@ -157,7 +155,7 @@ export default function RequestsAdoptanteScreen() {
             <FlatList
               data={requests}
               keyExtractor={(item) => item.id}
-              contentContainerStyle={{ paddingTop: 16, paddingBottom: 24 }}
+              contentContainerStyle={{ paddingTop: 16, paddingBottom: 120 }}
               renderItem={({ item }) => (
                 <Card>
                   <CardAvatar>
