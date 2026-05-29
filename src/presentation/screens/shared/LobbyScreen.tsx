@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { FlatList, Alert, ActivityIndicator } from 'react-native';
+import { FlatList, Alert, ActivityIndicator, Dimensions } from 'react-native';
 import styled from 'styled-components/native';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
@@ -9,6 +9,9 @@ import { GetAllPetsUseCase } from '@/src/domain/usecases/GetAllPetsUseCase';
 import { AuthRepositoryImpl } from '@/src/data/repositories/AuthRepositoryImpl';
 import { LogoutUseCase } from '@/src/domain/usecases/LogoutUseCase';
 import type { Pet } from '@/src/domain/entities/Pet';
+
+const screenWidth = Dimensions.get('window').width;
+const cardWidth = (screenWidth - 48) / 2;
 
 const Container = styled.View`
   flex: 1;
@@ -55,26 +58,30 @@ const SearchInput = styled.TextInput`
   color: #fff;
 `;
 
-const CategoriesRow = styled.ScrollView.attrs({
-  horizontal: true,
-  showsHorizontalScrollIndicator: false,
-  contentContainerStyle: { paddingHorizontal: 20, paddingVertical: 16 },
-})``;
+const CategoriesRow = styled.View`
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  padding-horizontal: 16px;
+  padding-vertical: 16px;
+`;
 
 const CategoryChip = styled.TouchableOpacity<{ active: boolean }>`
-  padding-horizontal: 20px;
+  width: ${(screenWidth - 56) / 4}px;
   padding-vertical: 10px;
   border-radius: 20px;
-  margin-right: 10px;
   background-color: ${(props) => (props.active ? '#0a7ea4' : '#fff')};
   border-width: 1px;
   border-color: ${(props) => (props.active ? '#0a7ea4' : '#d0d5dd')};
+  align-items: center;
 `;
 
 const CategoryText = styled.Text<{ active: boolean }>`
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
   color: ${(props) => (props.active ? '#fff' : '#687076')};
+  text-align: center;
 `;
 
 const SectionTitle = styled.Text`
@@ -86,10 +93,11 @@ const SectionTitle = styled.Text`
 `;
 
 const Card = styled.View`
+  width: ${cardWidth}px;
   background-color: #fff;
-  border-radius: 16px;
-  margin-horizontal: 20px;
+  border-radius: 14px;
   margin-bottom: 16px;
+  margin-horizontal: 8px;
   shadow-color: #000;
   shadow-offset: 0px 2px;
   shadow-opacity: 0.06;
@@ -99,23 +107,23 @@ const Card = styled.View`
 `;
 
 const CardImage = styled.Image`
-  height: 160px;
+  height: 120px;
   width: 100%;
 `;
 
 const CardImageFallback = styled.View`
-  height: 160px;
+  height: 120px;
   background-color: #e0e7ef;
   justify-content: center;
   align-items: center;
 `;
 
 const CardBody = styled.View`
-  padding: 14px 16px;
+  padding: 10px 12px;
 `;
 
 const CardName = styled.Text`
-  font-size: 18px;
+  font-size: 15px;
   font-weight: 700;
   color: #11181c;
 `;
@@ -127,22 +135,22 @@ const CardRow = styled.View`
 `;
 
 const CardLabel = styled.Text`
-  font-size: 13px;
+  font-size: 12px;
   color: #687076;
-  margin-right: 12px;
+  margin-right: 8px;
 `;
 
 const AdoptButton = styled.TouchableOpacity`
   background-color: #0a7ea4;
-  border-radius: 10px;
-  padding-vertical: 10px;
+  border-radius: 8px;
+  padding-vertical: 8px;
   align-items: center;
-  margin-top: 10px;
+  margin-top: 8px;
 `;
 
 const AdoptButtonText = styled.Text`
   color: #fff;
-  font-size: 15px;
+  font-size: 13px;
   font-weight: 700;
 `;
 
@@ -166,7 +174,17 @@ const EmptyText = styled.Text`
   margin-top: 12px;
 `;
 
-const categories = ['Todos', 'Perros', 'Gatos', 'Aves', 'Reptiles'];
+const categories = ['Todos', 'Perros', 'Gatos', 'Aves', 'Reptiles', 'Peces', 'Roedores'];
+
+const speciesMap: Record<string, string> = {
+  Todos: '',
+  Perros: 'Perro',
+  Gatos: 'Gato',
+  Aves: 'Ave',
+  Reptiles: 'Reptil',
+  Peces: 'Peces',
+  Roedores: 'Roedores',
+};
 
 export default function LobbyScreen() {
   const { role } = useAuth();
@@ -213,9 +231,10 @@ export default function LobbyScreen() {
   const filteredPets = pets.filter((pet) => {
     const matchesSearch =
       pet.name.toLowerCase().includes(search.toLowerCase()) ||
-      pet.breed.toLowerCase().includes(search.toLowerCase());
+      pet.species.toLowerCase().includes(search.toLowerCase());
+    const selectedSpecies = speciesMap[activeCategory];
     const matchesCategory =
-      activeCategory === 'Todos' || pet.species === activeCategory;
+      activeCategory === 'Todos' || pet.species === selectedSpecies;
     return matchesSearch && matchesCategory;
   });
 
@@ -244,7 +263,7 @@ export default function LobbyScreen() {
           </LogoutButton>
         </HeaderRow>
         <SearchInput
-          placeholder="Buscar por raza o nombre..."
+          placeholder="Buscar por especie o nombre..."
           placeholderTextColor="rgba(255,255,255,0.6)"
           value={search}
           onChangeText={setSearch}
@@ -274,19 +293,23 @@ export default function LobbyScreen() {
         <FlatList
           data={filteredPets}
           keyExtractor={(item) => item.id}
+          numColumns={2}
+          contentContainerStyle={{ paddingHorizontal: 12, paddingBottom: 24 }}
           renderItem={({ item }) => (
             <Card>
               {item.image_url ? (
                 <CardImage source={{ uri: item.image_url }} />
               ) : (
                 <CardImageFallback>
-                  <Ionicons name="paw" size={48} color="#9ca3af" />
+                  <Ionicons name="paw" size={32} color="#9ca3af" />
                 </CardImageFallback>
               )}
               <CardBody>
-                <CardName>{item.name}</CardName>
+                <CardName numberOfLines={1}>{item.name}</CardName>
                 <CardRow>
-                  <CardLabel>Raza: {item.breed}</CardLabel>
+                  <CardLabel>Especie: {item.species}</CardLabel>
+                </CardRow>
+                <CardRow>
                   <CardLabel>Edad: {item.age}</CardLabel>
                 </CardRow>
                 {role === 'adoptante' && (
@@ -297,7 +320,6 @@ export default function LobbyScreen() {
               </CardBody>
             </Card>
           )}
-          contentContainerStyle={{ paddingBottom: 24 }}
           showsVerticalScrollIndicator={false}
         />
       )}

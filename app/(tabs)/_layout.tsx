@@ -13,7 +13,7 @@ const tabs: { name: string; label: string; icon: IoniconsName }[] = [
   { name: 'mascotas', label: 'Mascotas', icon: 'paw' },
   { name: 'asistente', label: 'Asistente', icon: 'chatbubble-ellipses' },
   { name: 'solicitudes', label: 'Solicitudes', icon: 'document-text' },
-  { name: 'perfil', label: 'Perfil', icon: 'person' },
+  { name: 'chats', label: 'Chats', icon: 'chatbubbles' },
 ];
 
 function TabBarButton(props: {

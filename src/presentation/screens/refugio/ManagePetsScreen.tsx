@@ -3,6 +3,7 @@ import { FlatList, Alert, ActivityIndicator, Modal, KeyboardAvoidingView, Platfo
 import styled from 'styled-components/native';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
+import { Picker } from '@react-native-picker/picker';
 import { useAuth } from '@/src/presentation/context/AuthContext';
 import { PetRepositoryImpl } from '@/src/data/repositories/PetRepositoryImpl';
 import { GetPetsByRefugioUseCase } from '@/src/domain/usecases/GetPetsByRefugioUseCase';
@@ -45,9 +46,9 @@ const PetCount = styled.Text`
 
 const Card = styled.View`
   background-color: #fff;
-  border-radius: 16px;
+  border-radius: 12px;
   margin-horizontal: 20px;
-  margin-bottom: 14px;
+  margin-bottom: 10px;
   flex-direction: row;
   overflow: hidden;
   shadow-color: #000;
@@ -58,7 +59,8 @@ const Card = styled.View`
 `;
 
 const CardImage = styled.View`
-  width: 100px;
+  width: 80px;
+  height: 80px;
   background-color: #e0e7ef;
   justify-content: center;
   align-items: center;
@@ -66,18 +68,18 @@ const CardImage = styled.View`
 
 const CardBody = styled.View`
   flex: 1;
-  padding: 14px;
+  padding: 10px 12px;
   justify-content: center;
 `;
 
 const CardName = styled.Text`
-  font-size: 17px;
+  font-size: 15px;
   font-weight: 700;
   color: #11181c;
 `;
 
 const CardBreed = styled.Text`
-  font-size: 13px;
+  font-size: 12px;
   color: #687076;
   margin-top: 2px;
 `;
@@ -85,13 +87,13 @@ const CardBreed = styled.Text`
 const CardActions = styled.View`
   flex-direction: row;
   gap: 4px;
-  margin-top: 10px;
+  margin-top: 8px;
 `;
 
 const ActionButton = styled.TouchableOpacity<{ danger?: boolean }>`
-  width: 34px;
-  height: 34px;
-  border-radius: 17px;
+  width: 30px;
+  height: 30px;
+  border-radius: 15px;
   background-color: ${(props) => (props.danger ? '#fef2f2' : '#f3f4f6')};
   justify-content: center;
   align-items: center;
@@ -189,43 +191,34 @@ const Input = styled.TextInput`
   background-color: #fafafa;
 `;
 
-const AgeRow = styled.View`
+const PickerRow = styled.View`
   flex-direction: row;
   gap: 12px;
 `;
 
-const AgeInput = styled.TextInput`
+const PickerWrapper = styled.View`
   flex: 1;
   border-width: 1px;
   border-color: #d0d5dd;
   border-radius: 10px;
-  padding-horizontal: 14px;
-  padding-vertical: 12px;
-  font-size: 15px;
-  color: #11181c;
   background-color: #fafafa;
+  overflow: hidden;
 `;
 
-const AgeLabel = styled.Text`
-  font-size: 13px;
-  color: #687076;
-  margin-top: 8px;
-`;
-
-const Picker = styled.View`
+const ChipRow = styled.View`
   flex-direction: row;
   gap: 8px;
   flex-wrap: wrap;
 `;
 
-const PickerOption = styled.TouchableOpacity<{ active: boolean }>`
+const ChipOption = styled.TouchableOpacity<{ active: boolean }>`
   padding-horizontal: 18px;
   padding-vertical: 10px;
   border-radius: 20px;
   background-color: ${(props) => (props.active ? '#0a7ea4' : '#f3f4f6')};
 `;
 
-const PickerText = styled.Text<{ active: boolean }>`
+const ChipText = styled.Text<{ active: boolean }>`
   font-size: 14px;
   font-weight: 600;
   color: ${(props) => (props.active ? '#fff' : '#687076')};
@@ -264,15 +257,17 @@ const SubmitButtonText = styled.Text`
   font-weight: 700;
 `;
 
-const speciesOptions = ['Perro', 'Gato', 'Ave', 'Reptil'];
+const speciesOptions = ['Perro', 'Gato', 'Ave', 'Reptil', 'Peces', 'Roedores'];
 const sizeOptions = ['Pequeño', 'Mediano', 'Grande'];
+const yearItems = Array.from({ length: 21 }, (_, i) => i);
+const monthItems = Array.from({ length: 12 }, (_, i) => i);
 
 interface FormData {
   name: string;
   species: string;
   breed: string;
-  years: string;
-  months: string;
+  years: number;
+  months: number;
   size: 'Pequeño' | 'Mediano' | 'Grande';
   description: string;
 }
@@ -281,8 +276,8 @@ const emptyForm: FormData = {
   name: '',
   species: 'Perro',
   breed: '',
-  years: '',
-  months: '',
+  years: 0,
+  months: 0,
   size: 'Mediano',
   description: '',
 };
@@ -331,8 +326,8 @@ export default function ManagePetsScreen() {
       name: pet.name,
       species: pet.species,
       breed: pet.breed,
-      years: '',
-      months: '',
+      years: 0,
+      months: 0,
       size: pet.size,
       description: pet.description,
     });
@@ -363,9 +358,7 @@ export default function ManagePetsScreen() {
     }
     if (!user) return;
     if (editingPet) {
-      const ageString = form.years || form.months
-        ? `${form.years || '0'} años y ${form.months || '0'} meses`
-        : editingPet.age;
+      const ageString = `${form.years} años y ${form.months} meses`;
 
       setSaving(true);
       try {
@@ -392,7 +385,7 @@ export default function ManagePetsScreen() {
         return;
       }
 
-      const ageString = `${form.years || '0'} años y ${form.months || '0'} meses`;
+      const ageString = `${form.years} años y ${form.months} meses`;
 
       setSaving(true);
       try {
@@ -474,27 +467,27 @@ export default function ManagePetsScreen() {
         <FlatList
           data={pets}
           keyExtractor={(item) => item.id}
-          contentContainerStyle={{ paddingTop: 20, paddingBottom: 100 }}
+          contentContainerStyle={{ paddingTop: 16, paddingBottom: 100 }}
           renderItem={({ item }) => (
             <Card>
               <CardImage>
                 {item.image_url ? (
-                  <Image source={{ uri: item.image_url }} style={{ width: 100, height: '100%' }} />
+                  <Image source={{ uri: item.image_url }} style={{ width: 80, height: 80 }} />
                 ) : (
-                  <Ionicons name="paw" size={32} color="#9ca3af" />
+                  <Ionicons name="paw" size={28} color="#9ca3af" />
                 )}
               </CardImage>
               <CardBody>
                 <CardName>{item.name}</CardName>
                 <CardBreed>
-                  {item.breed} · {item.age} · {item.size}
+                  {item.species} · {item.age} · {item.size}
                 </CardBreed>
                 <CardActions>
                   <ActionButton onPress={() => openEdit(item)}>
-                    <Ionicons name="pencil" size={16} color="#0a7ea4" />
+                    <Ionicons name="pencil" size={14} color="#0a7ea4" />
                   </ActionButton>
                   <ActionButton danger onPress={() => handleDelete(item.id)}>
-                    <Ionicons name="trash-outline" size={16} color="#dc2626" />
+                    <Ionicons name="trash-outline" size={14} color="#dc2626" />
                   </ActionButton>
                 </CardActions>
               </CardBody>
@@ -535,17 +528,17 @@ export default function ManagePetsScreen() {
                 />
 
                 <FieldLabel>Especie</FieldLabel>
-                <Picker>
+                <ChipRow>
                   {speciesOptions.map((s) => (
-                    <PickerOption
+                    <ChipOption
                       key={s}
                       active={form.species === s}
                       onPress={() => setForm((prev) => ({ ...prev, species: s }))}
                     >
-                      <PickerText active={form.species === s}>{s}</PickerText>
-                    </PickerOption>
+                      <ChipText active={form.species === s}>{s}</ChipText>
+                    </ChipOption>
                   ))}
-                </Picker>
+                </ChipRow>
 
                 <FieldLabel>Raza *</FieldLabel>
                 <Input
@@ -555,35 +548,41 @@ export default function ManagePetsScreen() {
                 />
 
                 <FieldLabel>Edad *</FieldLabel>
-                <AgeRow>
-                  <AgeInput
-                    placeholder="Años"
-                    keyboardType="numeric"
-                    value={form.years}
-                    onChangeText={(text) => setForm((prev) => ({ ...prev, years: text }))}
-                  />
-                  <AgeLabel>Años</AgeLabel>
-                  <AgeInput
-                    placeholder="Meses"
-                    keyboardType="numeric"
-                    value={form.months}
-                    onChangeText={(text) => setForm((prev) => ({ ...prev, months: text }))}
-                  />
-                  <AgeLabel>Meses</AgeLabel>
-                </AgeRow>
+                <PickerRow>
+                  <PickerWrapper>
+                    <Picker
+                      selectedValue={form.years}
+                      onValueChange={(value) => setForm((prev) => ({ ...prev, years: value }))}
+                    >
+                      {yearItems.map((y) => (
+                        <Picker.Item key={y} label={`${y} año${y !== 1 ? 's' : ''}`} value={y} />
+                      ))}
+                    </Picker>
+                  </PickerWrapper>
+                  <PickerWrapper>
+                    <Picker
+                      selectedValue={form.months}
+                      onValueChange={(value) => setForm((prev) => ({ ...prev, months: value }))}
+                    >
+                      {monthItems.map((m) => (
+                        <Picker.Item key={m} label={`${m} mes${m !== 1 ? 'es' : ''}`} value={m} />
+                      ))}
+                    </Picker>
+                  </PickerWrapper>
+                </PickerRow>
 
                 <FieldLabel>Tamaño</FieldLabel>
-                <Picker>
+                <ChipRow>
                   {sizeOptions.map((s) => (
-                    <PickerOption
+                    <ChipOption
                       key={s}
                       active={form.size === s}
                       onPress={() => setForm((prev) => ({ ...prev, size: s as FormData['size'] }))}
                     >
-                      <PickerText active={form.size === s}>{s}</PickerText>
-                    </PickerOption>
+                      <ChipText active={form.size === s}>{s}</ChipText>
+                    </ChipOption>
                   ))}
-                </Picker>
+                </ChipRow>
 
                 <FieldLabel>Descripción</FieldLabel>
                 <Input
@@ -601,9 +600,9 @@ export default function ManagePetsScreen() {
                 ) : null}
                 <ImagePickerButton onPress={handlePickImage}>
                   <Ionicons name="camera-outline" size={28} color="#687076" />
-                  <PickerText active={false} style={{ marginTop: 8 }}>
+                  <ChipText active={false} style={{ marginTop: 8 }}>
                     {imageUri ? 'Cambiar imagen' : 'Seleccionar imagen'}
-                  </PickerText>
+                  </ChipText>
                 </ImagePickerButton>
 
                 <SubmitButton onPress={handleSave} disabled={saving}>
