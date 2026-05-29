@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 import { FlatList, Alert, ActivityIndicator, Dimensions } from 'react-native';
 import styled from 'styled-components/native';
 import { Ionicons } from '@expo/vector-icons';
-import { router } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
 import { useAuth } from '@/src/presentation/context/AuthContext';
 import { PetRepositoryImpl } from '@/src/data/repositories/PetRepositoryImpl';
 import { GetAllPetsUseCase } from '@/src/domain/usecases/GetAllPetsUseCase';
@@ -149,21 +149,25 @@ export default function LobbyScreen() {
   const [loading, setLoading] = useState(true);
   const [adoptingId, setAdoptingId] = useState<string | null>(null);
 
-  useEffect(() => {
-    const loadPets = async () => {
-      try {
-        const repository = new PetRepositoryImpl();
-        const useCase = new GetAllPetsUseCase(repository);
-        const data = await useCase.execute();
-        setPets(data);
-      } catch {
-        Alert.alert('Error', 'No se pudieron cargar las mascotas');
-      } finally {
-        setLoading(false);
-      }
-    };
-    loadPets();
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      const loadPets = async () => {
+        try {
+          const repository = new PetRepositoryImpl();
+          const useCase = new GetAllPetsUseCase(repository);
+          const data = await useCase.execute();
+          setPets(data);
+        } catch {
+          Alert.alert('Error', 'No se pudieron cargar las mascotas');
+        } finally {
+          setLoading(false);
+        }
+      };
+      loadPets();
+
+      return () => {};
+    }, [])
+  );
 
   const handleAdopt = (pet: Pet) => {
     Alert.alert(

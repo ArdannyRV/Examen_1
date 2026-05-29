@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 import { FlatList, Alert, ActivityIndicator, Modal, KeyboardAvoidingView, Platform, ScrollView, Image } from 'react-native';
 import styled from 'styled-components/native';
 import { Ionicons } from '@expo/vector-icons';
+import { useFocusEffect } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
 import { Picker } from '@react-native-picker/picker';
 import { useAuth } from '@/src/presentation/context/AuthContext';
@@ -269,9 +270,12 @@ export default function ManagePetsScreen() {
     }
   };
 
-  useEffect(() => {
-    loadPets();
-  }, [user]);
+  useFocusEffect(
+    useCallback(() => {
+      loadPets();
+      return () => {};
+    }, [user])
+  );
 
   const openAdd = () => {
     setEditingPet(null);
