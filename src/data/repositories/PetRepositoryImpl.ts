@@ -31,10 +31,14 @@ export class PetRepositoryImpl implements IPetRepository {
   async getPetsByRefugio(refugioId: string): Promise<Pet[]> {
     const { data, error } = await supabase
       .from('pets')
-      .select('*')
+      .select('*, adoption_requests(status)')
       .eq('refugio_id', refugioId);
     if (error) throw new Error(error.message);
-    return (data ?? []).map(mapRow);
+    const availablePets = (data ?? []).filter((pet) => {
+      if (!pet.adoption_requests || pet.adoption_requests.length === 0) return true;
+      return !pet.adoption_requests.some((req: any) => req.status === 'aprobada');
+    });
+    return availablePets.map(mapRow);
   }
 
   async createPet(pet: Omit<Pet, 'id' | 'created_at'>, imageBase64: string): Promise<void> {
