@@ -3,6 +3,7 @@ import { Tabs } from 'expo-router';
 import { TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '@/src/presentation/context/AuthContext';
+import { useTheme } from 'styled-components/native';
 import type { ComponentProps } from 'react';
 
 type IoniconsName = ComponentProps<typeof Ionicons>['name'];
@@ -22,6 +23,7 @@ function TabBarButton(props: {
   accessibilityState?: { selected?: boolean };
 }) {
   const focused = props.accessibilityState?.selected ?? false;
+  const theme = useTheme();
 
   return (
     <TouchableOpacity
@@ -31,7 +33,7 @@ function TabBarButton(props: {
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: focused ? '#0d9488' : 'transparent',
+        backgroundColor: focused ? theme.colors.primary : 'transparent',
         borderRadius: 20,
         marginHorizontal: 4,
         marginVertical: 8,
@@ -46,11 +48,12 @@ function TabBarButton(props: {
 
 export default function TabsLayout() {
   const { role, loading } = useAuth();
+  const theme = useTheme();
 
   if (loading) {
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#fff' }}>
-        <ActivityIndicator size="large" color="#0a7ea4" />
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: theme.colors.background }}>
+        <ActivityIndicator size="large" color={theme.colors.primary} />
       </View>
     );
   }
@@ -61,14 +64,14 @@ export default function TabsLayout() {
         headerShown: false,
         tabBarShowLabel: true,
         tabBarActiveTintColor: '#fff',
-        tabBarInactiveTintColor: '#687076',
+        tabBarInactiveTintColor: theme.colors.textLight,
         tabBarLabelStyle: {
           fontSize: 11,
           fontWeight: '600',
           marginTop: 2,
         },
         tabBarStyle: {
-          backgroundColor: '#fff',
+          backgroundColor: theme.colors.surface,
           borderTopWidth: 0,
           elevation: 10,
           shadowColor: '#000',

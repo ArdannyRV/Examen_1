@@ -10,96 +10,68 @@ import { AuthRepositoryImpl } from '@/src/data/repositories/AuthRepositoryImpl';
 import { LogoutUseCase } from '@/src/domain/usecases/LogoutUseCase';
 import { RequestRepositoryImpl } from '@/src/data/repositories/RequestRepositoryImpl';
 import { CreateRequestUseCase } from '@/src/domain/usecases/CreateRequestUseCase';
+import AnimatedBackground from '@/src/presentation/components/ui/AnimatedBackground';
+import GlassHeader from '@/src/presentation/components/ui/GlassHeader';
+import { MainContainer } from '@/src/presentation/components/ui/Card';
 import type { Pet } from '@/src/domain/entities/Pet';
 
 const screenWidth = Dimensions.get('window').width;
-const cardWidth = (screenWidth - 48) / 2;
+const cardWidth = (screenWidth - 56) / 2;
 
 const Container = styled.View`
   flex: 1;
-  background-color: #f5f7fa;
-`;
-
-const Header = styled.View`
-  background-color: #0a7ea4;
-  padding-top: 60px;
-  padding-bottom: 20px;
-  padding-horizontal: 20px;
-  border-bottom-left-radius: 24px;
-  border-bottom-right-radius: 24px;
-`;
-
-const HeaderRow = styled.View`
-  flex-direction: row;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 16px;
-`;
-
-const HeaderTitle = styled.Text`
-  font-size: 24px;
-  font-weight: 700;
-  color: #fff;
-`;
-
-const LogoutButton = styled.TouchableOpacity`
-  width: 40px;
-  height: 40px;
-  border-radius: 20px;
-  background-color: rgba(255, 255, 255, 0.2);
-  justify-content: center;
-  align-items: center;
 `;
 
 const SearchInput = styled.TextInput`
-  background-color: rgba(255, 255, 255, 0.2);
+  background-color: #fff;
   border-radius: 12px;
   padding-horizontal: 16px;
   padding-vertical: 12px;
   font-size: 16px;
-  color: #fff;
+  color: #1F2937;
+  border-width: 1px;
+  border-color: rgba(16, 185, 129, 0.2);
+  margin-top: 14px;
 `;
 
-const CategoriesRow = styled.View`
+const FilterRow = styled.View`
   flex-direction: row;
-  flex-wrap: wrap;
   justify-content: center;
   gap: 8px;
-  padding-horizontal: 16px;
-  padding-vertical: 16px;
+  margin-bottom: 8px;
 `;
 
 const CategoryChip = styled.TouchableOpacity<{ active: boolean }>`
-  width: ${(screenWidth - 56) / 4}px;
+  flex: 1;
+  max-width: ${(screenWidth - 72) / 4}px;
   padding-vertical: 10px;
   border-radius: 20px;
-  background-color: ${(props) => (props.active ? '#0a7ea4' : '#fff')};
+  background-color: ${({ active, theme }) => (active ? theme.colors.primary : 'rgba(255,255,255,0.85)')};
   border-width: 1px;
-  border-color: ${(props) => (props.active ? '#0a7ea4' : '#d0d5dd')};
+  border-color: ${({ active, theme }) => (active ? theme.colors.primary : theme.colors.border)};
   align-items: center;
 `;
 
 const CategoryText = styled.Text<{ active: boolean }>`
   font-size: 13px;
   font-weight: 600;
-  color: ${(props) => (props.active ? '#fff' : '#687076')};
+  color: ${({ active, theme }) => (active ? '#fff' : theme.colors.textLight)};
   text-align: center;
 `;
 
 const SectionTitle = styled.Text`
   font-size: 18px;
   font-weight: 700;
-  color: #11181c;
-  padding-horizontal: 20px;
+  color: ${({ theme }) => theme.colors.text};
   margin-bottom: 12px;
 `;
 
-const Card = styled.View`
+const PetCard = styled.View`
   width: ${cardWidth}px;
-  background-color: #fff;
+  background-color: ${({ theme }) => theme.colors.surface};
   border-radius: 14px;
   margin-bottom: 16px;
-  margin-horizontal: 8px;
+  margin-horizontal: 6px;
   shadow-color: #000;
   shadow-offset: 0px 2px;
   shadow-opacity: 0.06;
@@ -115,7 +87,7 @@ const CardImage = styled.Image`
 
 const CardImageFallback = styled.View`
   height: 120px;
-  background-color: #e0e7ef;
+  background-color: ${({ theme }) => theme.colors.border};
   justify-content: center;
   align-items: center;
 `;
@@ -127,7 +99,7 @@ const CardBody = styled.View`
 const CardName = styled.Text`
   font-size: 15px;
   font-weight: 700;
-  color: #11181c;
+  color: ${({ theme }) => theme.colors.text};
 `;
 
 const CardRow = styled.View`
@@ -138,12 +110,12 @@ const CardRow = styled.View`
 
 const CardLabel = styled.Text`
   font-size: 12px;
-  color: #687076;
+  color: ${({ theme }) => theme.colors.textLight};
   margin-right: 8px;
 `;
 
 const AdoptButton = styled.TouchableOpacity`
-  background-color: #0a7ea4;
+  background-color: ${({ theme }) => theme.colors.primary};
   border-radius: 8px;
   padding-vertical: 8px;
   align-items: center;
@@ -171,9 +143,18 @@ const EmptyState = styled.View`
 
 const EmptyText = styled.Text`
   font-size: 16px;
-  color: #687076;
+  color: ${({ theme }) => theme.colors.textLight};
   text-align: center;
   margin-top: 12px;
+`;
+
+const LogoutIconBtn = styled.TouchableOpacity`
+  width: 40px;
+  height: 40px;
+  border-radius: 20px;
+  background-color: rgba(16, 185, 129, 0.15);
+  justify-content: center;
+  align-items: center;
 `;
 
 const categories = ['Todos', 'Perros', 'Gatos', 'Aves', 'Reptiles', 'Peces', 'Roedores'];
@@ -267,95 +248,109 @@ export default function LobbyScreen() {
   if (loading) {
     return (
       <Container>
-        <Header>
-          <HeaderRow>
-            <HeaderTitle>PetAdopt</HeaderTitle>
-          </HeaderRow>
-        </Header>
+        <AnimatedBackground />
         <Loader>
-          <ActivityIndicator size="large" color="#0a7ea4" />
+          <ActivityIndicator size="large" color="#10B981" />
         </Loader>
       </Container>
     );
   }
 
+  const firstRow = categories.slice(0, 4);
+  const secondRow = categories.slice(4);
+
   return (
     <Container>
-      <Header>
-        <HeaderRow>
-          <HeaderTitle>PetAdopt</HeaderTitle>
-          <LogoutButton onPress={handleLogout}>
-            <Ionicons name="log-out-outline" size={22} color="#fff" />
-          </LogoutButton>
-        </HeaderRow>
+      <AnimatedBackground />
+      <GlassHeader
+        title="PetAdopt"
+        rightIcon={
+          <LogoutIconBtn onPress={handleLogout}>
+            <Ionicons name="log-out-outline" size={22} color="#10B981" />
+          </LogoutIconBtn>
+        }
+      >
         <SearchInput
           placeholder="Buscar por especie o nombre..."
-          placeholderTextColor="rgba(255,255,255,0.6)"
+          placeholderTextColor="#9CA3AF"
           value={search}
           onChangeText={setSearch}
         />
-      </Header>
+      </GlassHeader>
 
-      <CategoriesRow>
-        {categories.map((cat) => (
-          <CategoryChip
-            key={cat}
-            active={activeCategory === cat}
-            onPress={() => setActiveCategory(cat)}
-          >
-            <CategoryText active={activeCategory === cat}>{cat}</CategoryText>
-          </CategoryChip>
-        ))}
-      </CategoriesRow>
+      <MainContainer>
+        <FilterRow>
+          {firstRow.map((cat) => (
+            <CategoryChip
+              key={cat}
+              active={activeCategory === cat}
+              onPress={() => setActiveCategory(cat)}
+            >
+              <CategoryText active={activeCategory === cat}>{cat}</CategoryText>
+            </CategoryChip>
+          ))}
+        </FilterRow>
+        <FilterRow>
+          {secondRow.map((cat) => (
+            <CategoryChip
+              key={cat}
+              active={activeCategory === cat}
+              onPress={() => setActiveCategory(cat)}
+            >
+              <CategoryText active={activeCategory === cat}>{cat}</CategoryText>
+            </CategoryChip>
+          ))}
+        </FilterRow>
 
-      <SectionTitle>Mascotas disponibles</SectionTitle>
+        <SectionTitle>Mascotas disponibles</SectionTitle>
 
-      {filteredPets.length === 0 ? (
-        <EmptyState>
-          <Ionicons name="paw-outline" size={64} color="#d0d5dd" />
-          <EmptyText>No se encontraron mascotas con los filtros actuales.</EmptyText>
-        </EmptyState>
-      ) : (
-        <FlatList
-          data={filteredPets}
-          keyExtractor={(item) => item.id}
-          numColumns={2}
-          contentContainerStyle={{ paddingHorizontal: 12, paddingBottom: 24 }}
-          renderItem={({ item }) => (
-            <Card>
-              {item.image_url ? (
-                <CardImage source={{ uri: item.image_url }} />
-              ) : (
-                <CardImageFallback>
-                  <Ionicons name="paw" size={32} color="#9ca3af" />
-                </CardImageFallback>
-              )}
-              <CardBody>
-                <CardName numberOfLines={1}>{item.name}</CardName>
-                <CardRow>
-                  <CardLabel>Especie: {item.species}</CardLabel>
-                </CardRow>
-                <CardRow>
-                  <CardLabel>Edad: {item.age}</CardLabel>
-                </CardRow>
-                {role === 'adoptante' && (
-                  <AdoptButton
-                    onPress={() => handleAdopt(item)}
-                    disabled={adoptingId === item.id}
-                  >
-                    {adoptingId === item.id ? (
-                      <ActivityIndicator color="#fff" size="small" />
-                    ) : (
-                      <AdoptButtonText>Adoptar</AdoptButtonText>
-                    )}
-                  </AdoptButton>
+        {filteredPets.length === 0 ? (
+          <EmptyState>
+            <Ionicons name="paw-outline" size={64} color="#d0d5dd" />
+            <EmptyText>No se encontraron mascotas con los filtros actuales.</EmptyText>
+          </EmptyState>
+        ) : (
+          <FlatList
+            data={filteredPets}
+            keyExtractor={(item) => item.id}
+            numColumns={2}
+            contentContainerStyle={{ flexGrow: 1, paddingBottom: 24 }}
+            renderItem={({ item }) => (
+              <PetCard>
+                {item.image_url ? (
+                  <CardImage source={{ uri: item.image_url }} />
+                ) : (
+                  <CardImageFallback>
+                    <Ionicons name="paw" size={32} color="#9ca3af" />
+                  </CardImageFallback>
                 )}
-              </CardBody>
-            </Card>
-          )}
-          showsVerticalScrollIndicator={false}
-        />
-      )}
+                <CardBody>
+                  <CardName numberOfLines={1}>{item.name}</CardName>
+                  <CardRow>
+                    <CardLabel>Especie: {item.species}</CardLabel>
+                  </CardRow>
+                  <CardRow>
+                    <CardLabel>Edad: {item.age}</CardLabel>
+                  </CardRow>
+                  {role === 'adoptante' && (
+                    <AdoptButton
+                      onPress={() => handleAdopt(item)}
+                      disabled={adoptingId === item.id}
+                    >
+                      {adoptingId === item.id ? (
+                        <ActivityIndicator color="#fff" size="small" />
+                      ) : (
+                        <AdoptButtonText>Adoptar</AdoptButtonText>
+                      )}
+                    </AdoptButton>
+                  )}
+                </CardBody>
+              </PetCard>
+            )}
+            showsVerticalScrollIndicator={false}
+          />
+        )}
+      </MainContainer>
     </Container>
   );
 }

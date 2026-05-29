@@ -10,44 +10,23 @@ import { GetPetsByRefugioUseCase } from '@/src/domain/usecases/GetPetsByRefugioU
 import { AddPetUseCase } from '@/src/domain/usecases/AddPetUseCase';
 import { UpdatePetUseCase } from '@/src/domain/usecases/UpdatePetUseCase';
 import { DeletePetUseCase } from '@/src/domain/usecases/DeletePetUseCase';
+import AnimatedBackground from '@/src/presentation/components/ui/AnimatedBackground';
+import GlassHeader from '@/src/presentation/components/ui/GlassHeader';
+import { MainContainer } from '@/src/presentation/components/ui/Card';
 import type { Pet } from '@/src/domain/entities/Pet';
 
 const Container = styled.View`
   flex: 1;
-  background-color: #f5f7fa;
 `;
 
-const Header = styled.View`
-  background-color: #0a7ea4;
-  padding-top: 60px;
-  padding-bottom: 20px;
-  padding-horizontal: 20px;
-  border-bottom-left-radius: 24px;
-  border-bottom-right-radius: 24px;
-`;
-
-const HeaderRow = styled.View`
-  flex-direction: row;
-  justify-content: space-between;
-  align-items: center;
-`;
-
-const HeaderTitle = styled.Text`
-  font-size: 24px;
-  font-weight: 700;
-  color: #fff;
-`;
-
-const PetCount = styled.Text`
-  font-size: 14px;
-  color: rgba(255, 255, 255, 0.8);
-  margin-top: 6px;
+const Content = styled.View`
+  flex: 1;
 `;
 
 const Card = styled.View`
-  background-color: #fff;
+  background-color: ${({ theme }) => theme.colors.surface};
   border-radius: 12px;
-  margin-horizontal: 20px;
+  margin-horizontal: 4px;
   margin-bottom: 10px;
   flex-direction: row;
   overflow: hidden;
@@ -61,7 +40,7 @@ const Card = styled.View`
 const CardImage = styled.View`
   width: 80px;
   height: 80px;
-  background-color: #e0e7ef;
+  background-color: ${({ theme }) => theme.colors.border};
   justify-content: center;
   align-items: center;
 `;
@@ -75,12 +54,12 @@ const CardBody = styled.View`
 const CardName = styled.Text`
   font-size: 15px;
   font-weight: 700;
-  color: #11181c;
+  color: ${({ theme }) => theme.colors.text};
 `;
 
 const CardBreed = styled.Text`
   font-size: 12px;
-  color: #687076;
+  color: ${({ theme }) => theme.colors.textLight};
   margin-top: 2px;
 `;
 
@@ -106,7 +85,7 @@ const FAB = styled.TouchableOpacity`
   width: 58px;
   height: 58px;
   border-radius: 29px;
-  background-color: #0a7ea4;
+  background-color: ${({ theme }) => theme.colors.primary};
   justify-content: center;
   align-items: center;
   shadow-color: #000;
@@ -125,7 +104,7 @@ const EmptyState = styled.View`
 
 const EmptyText = styled.Text`
   font-size: 16px;
-  color: #687076;
+  color: ${({ theme }) => theme.colors.textLight};
   text-align: center;
   margin-top: 12px;
 `;
@@ -138,12 +117,12 @@ const Loader = styled.View`
 
 const Overlay = styled.View`
   flex: 1;
-  background-color: rgba(0, 0, 0, 0.4);
+  background-color: ${({ theme }) => theme.colors.overlay};
   justify-content: flex-end;
 `;
 
 const Sheet = styled.View`
-  background-color: #fff;
+  background-color: ${({ theme }) => theme.colors.surface};
   border-top-left-radius: 24px;
   border-top-right-radius: 24px;
   padding: 24px;
@@ -160,7 +139,7 @@ const SheetHeader = styled.View`
 const SheetTitle = styled.Text`
   font-size: 20px;
   font-weight: 700;
-  color: #11181c;
+  color: ${({ theme }) => theme.colors.text};
 `;
 
 const CloseButton = styled.TouchableOpacity`
@@ -175,20 +154,20 @@ const CloseButton = styled.TouchableOpacity`
 const FieldLabel = styled.Text`
   font-size: 13px;
   font-weight: 600;
-  color: #687076;
+  color: ${({ theme }) => theme.colors.textLight};
   margin-bottom: 6px;
   margin-top: 14px;
 `;
 
 const Input = styled.TextInput`
   border-width: 1px;
-  border-color: #d0d5dd;
+  border-color: ${({ theme }) => theme.colors.border};
   border-radius: 10px;
   padding-horizontal: 14px;
   padding-vertical: 12px;
   font-size: 15px;
-  color: #11181c;
-  background-color: #fafafa;
+  color: ${({ theme }) => theme.colors.text};
+  background-color: ${({ theme }) => theme.colors.background};
 `;
 
 const PickerRow = styled.View`
@@ -199,9 +178,9 @@ const PickerRow = styled.View`
 const PickerWrapper = styled.View`
   flex: 1;
   border-width: 1px;
-  border-color: #d0d5dd;
+  border-color: ${({ theme }) => theme.colors.border};
   border-radius: 10px;
-  background-color: #fafafa;
+  background-color: ${({ theme }) => theme.colors.background};
   overflow: hidden;
 `;
 
@@ -215,24 +194,24 @@ const ChipOption = styled.TouchableOpacity<{ active: boolean }>`
   padding-horizontal: 18px;
   padding-vertical: 10px;
   border-radius: 20px;
-  background-color: ${(props) => (props.active ? '#0a7ea4' : '#f3f4f6')};
+  background-color: ${({ active, theme }) => (active ? theme.colors.primary : '#f3f4f6')};
 `;
 
 const ChipText = styled.Text<{ active: boolean }>`
   font-size: 14px;
   font-weight: 600;
-  color: ${(props) => (props.active ? '#fff' : '#687076')};
+  color: ${({ active, theme }) => (active ? '#fff' : theme.colors.textLight)};
 `;
 
 const ImagePickerButton = styled.TouchableOpacity`
   border-width: 1.5px;
-  border-color: #d0d5dd;
+  border-color: ${({ theme }) => theme.colors.border};
   border-radius: 12px;
   border-style: dashed;
   padding-vertical: 24px;
   align-items: center;
   justify-content: center;
-  background-color: #fafafa;
+  background-color: ${({ theme }) => theme.colors.background};
   margin-top: 6px;
 `;
 
@@ -244,7 +223,7 @@ const ImagePreview = styled.Image`
 `;
 
 const SubmitButton = styled.TouchableOpacity`
-  background-color: #0a7ea4;
+  background-color: ${({ theme }) => theme.colors.primary};
   border-radius: 12px;
   padding-vertical: 14px;
   align-items: center;
@@ -437,13 +416,9 @@ export default function ManagePetsScreen() {
   if (loading) {
     return (
       <Container>
-        <Header>
-          <HeaderRow>
-            <HeaderTitle>Mis Mascotas</HeaderTitle>
-          </HeaderRow>
-        </Header>
+        <AnimatedBackground />
         <Loader>
-          <ActivityIndicator size="large" color="#0a7ea4" />
+          <ActivityIndicator size="large" color="#10B981" />
         </Loader>
       </Container>
     );
@@ -451,50 +426,50 @@ export default function ManagePetsScreen() {
 
   return (
     <Container>
-      <Header>
-        <HeaderRow>
-          <HeaderTitle>Mis Mascotas</HeaderTitle>
-        </HeaderRow>
-        <PetCount>{pets.length} mascotas registradas</PetCount>
-      </Header>
+      <AnimatedBackground />
+      <GlassHeader title="Mis Mascotas" />
 
-      {pets.length === 0 ? (
-        <EmptyState>
-          <Ionicons name="paw-outline" size={64} color="#d0d5dd" />
-          <EmptyText>Aún no tienes mascotas registradas. Presiona + para agregar una.</EmptyText>
-        </EmptyState>
-      ) : (
-        <FlatList
-          data={pets}
-          keyExtractor={(item) => item.id}
-          contentContainerStyle={{ paddingTop: 16, paddingBottom: 100 }}
-          renderItem={({ item }) => (
-            <Card>
-              <CardImage>
-                {item.image_url ? (
-                  <Image source={{ uri: item.image_url }} style={{ width: 80, height: 80 }} />
-                ) : (
-                  <Ionicons name="paw" size={28} color="#9ca3af" />
-                )}
-              </CardImage>
-              <CardBody>
-                <CardName>{item.name}</CardName>
-                <CardBreed>
-                  {item.species} · {item.age} · {item.size}
-                </CardBreed>
-                <CardActions>
-                  <ActionButton onPress={() => openEdit(item)}>
-                    <Ionicons name="pencil" size={14} color="#0a7ea4" />
-                  </ActionButton>
-                  <ActionButton danger onPress={() => handleDelete(item.id)}>
-                    <Ionicons name="trash-outline" size={14} color="#dc2626" />
-                  </ActionButton>
-                </CardActions>
-              </CardBody>
-            </Card>
+      <MainContainer style={{ paddingHorizontal: 16 }}>
+        <Content>
+          {pets.length === 0 ? (
+            <EmptyState>
+              <Ionicons name="paw-outline" size={64} color="#d0d5dd" />
+              <EmptyText>Aún no tienes mascotas registradas. Presiona + para agregar una.</EmptyText>
+            </EmptyState>
+          ) : (
+            <FlatList
+              data={pets}
+              keyExtractor={(item) => item.id}
+              contentContainerStyle={{ paddingTop: 8, paddingBottom: 100 }}
+              renderItem={({ item }) => (
+                <Card>
+                  <CardImage>
+                    {item.image_url ? (
+                      <Image source={{ uri: item.image_url }} style={{ width: 80, height: 80 }} />
+                    ) : (
+                      <Ionicons name="paw" size={28} color="#9ca3af" />
+                    )}
+                  </CardImage>
+                  <CardBody>
+                    <CardName>{item.name}</CardName>
+                    <CardBreed>
+                      {item.species} · {item.age} · {item.size}
+                    </CardBreed>
+                    <CardActions>
+                      <ActionButton onPress={() => openEdit(item)}>
+                        <Ionicons name="pencil" size={14} color="#10B981" />
+                      </ActionButton>
+                      <ActionButton danger onPress={() => handleDelete(item.id)}>
+                        <Ionicons name="trash-outline" size={14} color="#dc2626" />
+                      </ActionButton>
+                    </CardActions>
+                  </CardBody>
+                </Card>
+              )}
+            />
           )}
-        />
-      )}
+        </Content>
+      </MainContainer>
 
       <FAB onPress={openAdd}>
         <Ionicons name="add" size={28} color="#fff" />

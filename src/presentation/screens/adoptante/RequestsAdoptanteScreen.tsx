@@ -6,37 +6,22 @@ import { useFocusEffect } from 'expo-router';
 import { useAuth } from '@/src/presentation/context/AuthContext';
 import { RequestRepositoryImpl } from '@/src/data/repositories/RequestRepositoryImpl';
 import { GetRequestsUseCase } from '@/src/domain/usecases/GetRequestsUseCase';
+import AnimatedBackground from '@/src/presentation/components/ui/AnimatedBackground';
+import GlassHeader from '@/src/presentation/components/ui/GlassHeader';
+import { MainContainer } from '@/src/presentation/components/ui/Card';
 
 const Container = styled.View`
   flex: 1;
-  background-color: #f5f7fa;
 `;
 
-const Header = styled.View`
-  background-color: #0a7ea4;
-  padding-top: 60px;
-  padding-bottom: 20px;
-  padding-horizontal: 20px;
-  border-bottom-left-radius: 24px;
-  border-bottom-right-radius: 24px;
-`;
-
-const HeaderTitle = styled.Text`
-  font-size: 24px;
-  font-weight: 700;
-  color: #fff;
-`;
-
-const HeaderCount = styled.Text`
-  font-size: 14px;
-  color: rgba(255, 255, 255, 0.8);
-  margin-top: 6px;
+const Content = styled.View`
+  flex: 1;
 `;
 
 const Card = styled.View`
-  background-color: #fff;
+  background-color: ${({ theme }) => theme.colors.surface};
   border-radius: 16px;
-  margin-horizontal: 20px;
+  margin-horizontal: 4px;
   margin-bottom: 14px;
   flex-direction: row;
   overflow: hidden;
@@ -52,7 +37,7 @@ const CardAvatar = styled.View`
   width: 60px;
   height: 60px;
   border-radius: 12px;
-  background-color: #e0e7ef;
+  background-color: ${({ theme }) => theme.colors.border};
   justify-content: center;
   align-items: center;
   margin-right: 14px;
@@ -66,12 +51,12 @@ const CardBody = styled.View`
 const CardName = styled.Text`
   font-size: 17px;
   font-weight: 700;
-  color: #11181c;
+  color: ${({ theme }) => theme.colors.text};
 `;
 
 const CardBreed = styled.Text`
   font-size: 13px;
-  color: #687076;
+  color: ${({ theme }) => theme.colors.textLight};
   margin-top: 2px;
 `;
 
@@ -109,7 +94,7 @@ const EmptyState = styled.View`
 
 const EmptyText = styled.Text`
   font-size: 16px;
-  color: #687076;
+  color: ${({ theme }) => theme.colors.textLight};
   text-align: center;
   margin-top: 12px;
 `;
@@ -148,11 +133,9 @@ export default function RequestsAdoptanteScreen() {
   if (loading) {
     return (
       <Container>
-        <Header>
-          <HeaderTitle>Mis Solicitudes</HeaderTitle>
-        </Header>
+        <AnimatedBackground />
         <Loader>
-          <ActivityIndicator size="large" color="#0a7ea4" />
+          <ActivityIndicator size="large" color="#10B981" />
         </Loader>
       </Container>
     );
@@ -160,43 +143,45 @@ export default function RequestsAdoptanteScreen() {
 
   return (
     <Container>
-      <Header>
-        <HeaderTitle>Mis Solicitudes</HeaderTitle>
-        <HeaderCount>{requests.length} solicitudes</HeaderCount>
-      </Header>
+      <AnimatedBackground />
+      <GlassHeader title="Mis Solicitudes" />
 
-      {requests.length === 0 ? (
-        <EmptyState>
-          <Ionicons name="document-text-outline" size={64} color="#d0d5dd" />
-          <EmptyText>No has realizado solicitudes de adopción aún.</EmptyText>
-        </EmptyState>
-      ) : (
-        <FlatList
-          data={requests}
-          keyExtractor={(item) => item.id}
-          contentContainerStyle={{ paddingTop: 20, paddingBottom: 24 }}
-          renderItem={({ item }) => (
-            <Card>
-              <CardAvatar>
-                <Ionicons name="paw" size={28} color="#9ca3af" />
-              </CardAvatar>
-              <CardBody>
-                <CardName>{item.pet?.name ?? 'Mascota'}</CardName>
-                <CardBreed>{item.pet?.breed ?? ''}</CardBreed>
-                <Badge status={item.status}>
-                  <BadgeText status={item.status}>
-                    {item.status === 'pendiente'
-                      ? 'Pendiente'
-                      : item.status === 'aprobada'
-                        ? 'Aprobada'
-                        : 'Rechazada'}
-                  </BadgeText>
-                </Badge>
-              </CardBody>
-            </Card>
+      <MainContainer style={{ paddingHorizontal: 16 }}>
+        <Content>
+          {requests.length === 0 ? (
+            <EmptyState>
+              <Ionicons name="document-text-outline" size={64} color="#d0d5dd" />
+              <EmptyText>No has realizado solicitudes de adopción aún.</EmptyText>
+            </EmptyState>
+          ) : (
+            <FlatList
+              data={requests}
+              keyExtractor={(item) => item.id}
+              contentContainerStyle={{ paddingTop: 16, paddingBottom: 24 }}
+              renderItem={({ item }) => (
+                <Card>
+                  <CardAvatar>
+                    <Ionicons name="paw" size={28} color="#9ca3af" />
+                  </CardAvatar>
+                  <CardBody>
+                    <CardName>{item.pet?.name ?? 'Mascota'}</CardName>
+                    <CardBreed>{item.pet?.breed ?? ''}</CardBreed>
+                    <Badge status={item.status}>
+                      <BadgeText status={item.status}>
+                        {item.status === 'pendiente'
+                          ? 'Pendiente'
+                          : item.status === 'aprobada'
+                            ? 'Aprobada'
+                            : 'Rechazada'}
+                      </BadgeText>
+                    </Badge>
+                  </CardBody>
+                </Card>
+              )}
+            />
           )}
-        />
-      )}
+        </Content>
+      </MainContainer>
     </Container>
   );
 }

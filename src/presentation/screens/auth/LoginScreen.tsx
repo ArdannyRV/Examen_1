@@ -1,81 +1,44 @@
 import { useState } from 'react';
-import { Alert, ActivityIndicator, Platform } from 'react-native';
+import { Alert, Platform } from 'react-native';
 import styled from 'styled-components/native';
+import LottieView from 'lottie-react-native';
 import { router } from 'expo-router';
 import { AuthRepositoryImpl } from '@/src/data/repositories/AuthRepositoryImpl';
 import { LoginUseCase } from '@/src/domain/usecases/LoginUseCase';
+import AnimatedBackground from '@/src/presentation/components/ui/AnimatedBackground';
+import { GlassCard } from '@/src/presentation/components/ui/Card';
+import Button from '@/src/presentation/components/ui/Button';
+import Input from '@/src/presentation/components/ui/Input';
 
 const Container = styled.KeyboardAvoidingView`
   flex: 1;
-  background-color: #0a7ea4;
   justify-content: center;
-  padding: 24px;
 `;
 
-const Card = styled.View`
-  background-color: #fff;
-  border-radius: 16px;
-  padding: 24px;
-  shadow-color: #000;
-  shadow-offset: 0px 2px;
-  shadow-opacity: 0.1;
-  shadow-radius: 8px;
-  elevation: 4;
-`;
+const Scroll = styled.ScrollView.attrs({
+  contentContainerStyle: { flexGrow: 1, justifyContent: 'center', padding: 24 },
+  keyboardShouldPersistTaps: 'handled',
+})``;
 
 const Title = styled.Text`
   font-size: 26px;
   font-weight: 700;
-  color: #11181c;
+  color: ${({ theme }) => theme.colors.text};
   text-align: center;
 `;
 
 const Subtitle = styled.Text`
   font-size: 14px;
-  color: #687076;
+  color: ${({ theme }) => theme.colors.textLight};
   text-align: center;
-  margin-bottom: 24px;
+  margin-bottom: 8px;
   margin-top: 4px;
 `;
 
-const Label = styled.Text`
-  font-size: 14px;
-  font-weight: 600;
-  color: #11181c;
-  margin-bottom: 6px;
-  margin-top: 12px;
-`;
-
-const Input = styled.TextInput`
-  border-width: 1px;
-  border-color: #d0d5dd;
-  border-radius: 10px;
-  padding-horizontal: 14px;
-  padding-vertical: 12px;
-  font-size: 16px;
-  color: #11181c;
-  background-color: #f9fafb;
-`;
-
-const Button = styled.TouchableOpacity<{ disabled?: boolean }>`
-  background-color: #0a7ea4;
-  border-radius: 10px;
-  padding-vertical: 14px;
-  align-items: center;
-  margin-top: 24px;
-  opacity: ${(props) => (props.disabled ? 0.7 : 1)};
-`;
-
-const ButtonText = styled.Text`
-  color: #fff;
-  font-size: 16px;
-  font-weight: 700;
-`;
-
 const LinkText = styled.Text`
-  color: #0a7ea4;
+  color: ${({ theme }) => theme.colors.primary};
   text-align: center;
-  margin-top: 16px;
+  margin-top: ${({ theme }) => theme.spacing.md}px;
   font-size: 14px;
   font-weight: 500;
 `;
@@ -108,41 +71,46 @@ export default function LoginScreen() {
 
   return (
     <Container behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      <Card>
-        <Title>Iniciar Sesión</Title>
-        <Subtitle>Bienvenido de vuelta a PetAdopt</Subtitle>
+      <AnimatedBackground />
+      <Scroll>
+        <GlassCard>
+          <Title>Iniciar Sesión</Title>
+          <Subtitle>Bienvenido de vuelta a PetAdopt</Subtitle>
 
-        <Label>Correo electrónico</Label>
-        <Input
-          placeholder="correo@ejemplo.com"
-          placeholderTextColor="#999"
-          value={email}
-          onChangeText={setEmail}
-          keyboardType="email-address"
-          autoCapitalize="none"
-        />
+          <LottieView
+            source={require('../../../../assets/animations/decoracion_animales.json')}
+            autoPlay
+            loop
+            style={{ width: '100%', height: 200 }}
+            resizeMode="contain"
+          />
 
-        <Label>Contraseña</Label>
-        <Input
-          placeholder="Tu contraseña"
-          placeholderTextColor="#999"
-          value={password}
-          onChangeText={setPassword}
-          secureTextEntry
-        />
+          <Input
+            label="Correo electrónico"
+            placeholder="correo@ejemplo.com"
+            value={email}
+            onChangeText={setEmail}
+            keyboardType="email-address"
+            autoCapitalize="none"
+          />
 
-        <Button disabled={loading} onPress={handleLogin}>
-          {loading ? (
-            <ActivityIndicator color="#fff" />
-          ) : (
-            <ButtonText>Iniciar Sesión</ButtonText>
-          )}
-        </Button>
+          <Input
+            label="Contraseña"
+            placeholder="Tu contraseña"
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry
+          />
 
-        <LinkText onPress={() => router.replace('/register')}>
-          ¿No tienes cuenta? Regístrate
-        </LinkText>
-      </Card>
+          <Button loading={loading} onPress={handleLogin} style={{ marginTop: 24 }}>
+            Iniciar Sesión
+          </Button>
+
+          <LinkText onPress={() => router.replace('/register')}>
+            ¿No tienes cuenta? Regístrate
+          </LinkText>
+        </GlassCard>
+      </Scroll>
     </Container>
   );
 }

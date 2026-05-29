@@ -7,37 +7,22 @@ import { useAuth } from '@/src/presentation/context/AuthContext';
 import { RequestRepositoryImpl } from '@/src/data/repositories/RequestRepositoryImpl';
 import { GetRequestsUseCase } from '@/src/domain/usecases/GetRequestsUseCase';
 import { UpdateRequestStatusUseCase } from '@/src/domain/usecases/UpdateRequestStatusUseCase';
+import AnimatedBackground from '@/src/presentation/components/ui/AnimatedBackground';
+import GlassHeader from '@/src/presentation/components/ui/GlassHeader';
+import { MainContainer } from '@/src/presentation/components/ui/Card';
 
 const Container = styled.View`
   flex: 1;
-  background-color: #f5f7fa;
 `;
 
-const Header = styled.View`
-  background-color: #0a7ea4;
-  padding-top: 60px;
-  padding-bottom: 20px;
-  padding-horizontal: 20px;
-  border-bottom-left-radius: 24px;
-  border-bottom-right-radius: 24px;
-`;
-
-const HeaderTitle = styled.Text`
-  font-size: 24px;
-  font-weight: 700;
-  color: #fff;
-`;
-
-const HeaderCount = styled.Text`
-  font-size: 14px;
-  color: rgba(255, 255, 255, 0.8);
-  margin-top: 6px;
+const Content = styled.View`
+  flex: 1;
 `;
 
 const Card = styled.TouchableOpacity`
-  background-color: #fff;
+  background-color: ${({ theme }) => theme.colors.surface};
   border-radius: 16px;
-  margin-horizontal: 20px;
+  margin-horizontal: 4px;
   margin-bottom: 14px;
   overflow: hidden;
   shadow-color: #000;
@@ -70,12 +55,12 @@ const SummaryInfo = styled.View`
 const SummaryName = styled.Text`
   font-size: 16px;
   font-weight: 700;
-  color: #11181c;
+  color: ${({ theme }) => theme.colors.text};
 `;
 
 const SummaryPet = styled.Text`
   font-size: 13px;
-  color: #687076;
+  color: ${({ theme }) => theme.colors.textLight};
   margin-top: 2px;
 `;
 
@@ -109,20 +94,20 @@ const ExpandedSection = styled.View`
 
 const Divider = styled.View`
   height: 1px;
-  background-color: #e5e7eb;
+  background-color: ${({ theme }) => theme.colors.border};
   margin-bottom: 14px;
 `;
 
 const DetailLabel = styled.Text`
   font-size: 13px;
   font-weight: 600;
-  color: #687076;
+  color: ${({ theme }) => theme.colors.textLight};
   margin-bottom: 4px;
 `;
 
 const DetailText = styled.Text`
   font-size: 14px;
-  color: #11181c;
+  color: ${({ theme }) => theme.colors.text};
   margin-bottom: 14px;
   line-height: 20px;
 `;
@@ -135,7 +120,7 @@ const ActionRow = styled.View`
 
 const AcceptButton = styled.TouchableOpacity`
   flex: 1;
-  background-color: #059669;
+  background-color: ${({ theme }) => theme.colors.primaryDark};
   border-radius: 10px;
   padding-vertical: 12px;
   flex-direction: row;
@@ -152,7 +137,7 @@ const AcceptButtonText = styled.Text`
 
 const RejectButton = styled.TouchableOpacity`
   flex: 1;
-  background-color: #dc2626;
+  background-color: ${({ theme }) => theme.colors.danger};
   border-radius: 10px;
   padding-vertical: 12px;
   flex-direction: row;
@@ -176,7 +161,7 @@ const EmptyState = styled.View`
 
 const EmptyText = styled.Text`
   font-size: 16px;
-  color: #687076;
+  color: ${({ theme }) => theme.colors.textLight};
   text-align: center;
   margin-top: 12px;
 `;
@@ -250,11 +235,9 @@ export default function RequestsRefugioScreen() {
   if (loading) {
     return (
       <Container>
-        <Header>
-          <HeaderTitle>Solicitudes</HeaderTitle>
-        </Header>
+        <AnimatedBackground />
         <Loader>
-          <ActivityIndicator size="large" color="#0a7ea4" />
+          <ActivityIndicator size="large" color="#10B981" />
         </Loader>
       </Container>
     );
@@ -262,73 +245,75 @@ export default function RequestsRefugioScreen() {
 
   return (
     <Container>
-      <Header>
-        <HeaderTitle>Solicitudes</HeaderTitle>
-        <HeaderCount>{pendingCount} solicitudes pendientes</HeaderCount>
-      </Header>
+      <AnimatedBackground />
+      <GlassHeader title="Solicitudes" />
 
-      {requests.length === 0 ? (
-        <EmptyState>
-          <Ionicons name="document-text-outline" size={64} color="#d0d5dd" />
-          <EmptyText>No hay solicitudes de adopción por el momento.</EmptyText>
-        </EmptyState>
-      ) : (
-        <FlatList
-          data={requests}
-          keyExtractor={(item) => item.id}
-          contentContainerStyle={{ paddingTop: 20, paddingBottom: 24 }}
-          renderItem={({ item }) => {
-            const isExpanded = expandedId === item.id;
-            const adoptanteName = item.adoptante?.name ?? 'Desconocido';
-            const petName = item.pet?.name ?? 'Mascota';
-            const petBreed = item.pet?.breed ?? '';
+      <MainContainer style={{ paddingHorizontal: 16 }}>
+        <Content>
+          {requests.length === 0 ? (
+            <EmptyState>
+              <Ionicons name="document-text-outline" size={64} color="#d0d5dd" />
+              <EmptyText>No hay solicitudes de adopción por el momento.</EmptyText>
+            </EmptyState>
+          ) : (
+            <FlatList
+              data={requests}
+              keyExtractor={(item) => item.id}
+              contentContainerStyle={{ paddingTop: 16, paddingBottom: 24 }}
+              renderItem={({ item }) => {
+                const isExpanded = expandedId === item.id;
+                const adoptanteName = item.adoptante?.name ?? 'Desconocido';
+                const petName = item.pet?.name ?? 'Mascota';
+                const petBreed = item.pet?.breed ?? '';
 
-            return (
-              <Card onPress={() => toggleExpand(item.id)} activeOpacity={0.95}>
-                <CardSummary>
-                  <AvatarCircle>
-                    <Ionicons name="person" size={22} color="#0a7ea4" />
-                  </AvatarCircle>
-                  <SummaryInfo>
-                    <SummaryName>{adoptanteName}</SummaryName>
-                    <SummaryPet>{petName} · {petBreed}</SummaryPet>
-                  </SummaryInfo>
-                  <Badge status={item.status}>
-                    <BadgeText status={item.status}>
-                      {item.status === 'pendiente'
-                        ? 'Pendiente'
-                        : item.status === 'aprobada'
-                          ? 'Aprobada'
-                          : 'Rechazada'}
-                    </BadgeText>
-                  </Badge>
-                </CardSummary>
+                return (
+                  <Card onPress={() => toggleExpand(item.id)} activeOpacity={0.95}>
+                    <CardSummary>
+                      <AvatarCircle>
+                        <Ionicons name="person" size={22} color="#10B981" />
+                      </AvatarCircle>
+                      <SummaryInfo>
+                        <SummaryName>{adoptanteName}</SummaryName>
+                        <SummaryPet>{petName} · {petBreed}</SummaryPet>
+                      </SummaryInfo>
+                      <Badge status={item.status}>
+                        <BadgeText status={item.status}>
+                          {item.status === 'pendiente'
+                            ? 'Pendiente'
+                            : item.status === 'aprobada'
+                              ? 'Aprobada'
+                              : 'Rechazada'}
+                        </BadgeText>
+                      </Badge>
+                    </CardSummary>
 
-                {isExpanded && (
-                  <ExpandedSection>
-                    <Divider />
-                    <DetailLabel>Experiencia del solicitante</DetailLabel>
-                    <DetailText>{item.adoptante?.experience ?? 'Sin experiencia registrada'}</DetailText>
+                    {isExpanded && (
+                      <ExpandedSection>
+                        <Divider />
+                        <DetailLabel>Experiencia del solicitante</DetailLabel>
+                        <DetailText>{item.adoptante?.experience ?? 'Sin experiencia registrada'}</DetailText>
 
-                    {item.status === 'pendiente' && (
-                      <ActionRow>
-                        <AcceptButton onPress={() => handleAccept(item.id)}>
-                          <Ionicons name="checkmark-circle" size={18} color="#fff" />
-                          <AcceptButtonText>Aceptar</AcceptButtonText>
-                        </AcceptButton>
-                        <RejectButton onPress={() => handleReject(item.id)}>
-                          <Ionicons name="close-circle" size={18} color="#fff" />
-                          <RejectButtonText>Rechazar</RejectButtonText>
-                        </RejectButton>
-                      </ActionRow>
+                        {item.status === 'pendiente' && (
+                          <ActionRow>
+                            <AcceptButton onPress={() => handleAccept(item.id)}>
+                              <Ionicons name="checkmark-circle" size={18} color="#fff" />
+                              <AcceptButtonText>Aceptar</AcceptButtonText>
+                            </AcceptButton>
+                            <RejectButton onPress={() => handleReject(item.id)}>
+                              <Ionicons name="close-circle" size={18} color="#fff" />
+                              <RejectButtonText>Rechazar</RejectButtonText>
+                            </RejectButton>
+                          </ActionRow>
+                        )}
+                      </ExpandedSection>
                     )}
-                  </ExpandedSection>
-                )}
-              </Card>
-            );
-          }}
-        />
-      )}
+                  </Card>
+                );
+              }}
+            />
+          )}
+        </Content>
+      </MainContainer>
     </Container>
   );
 }

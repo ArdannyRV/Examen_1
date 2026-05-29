@@ -1,70 +1,44 @@
 import { useState } from 'react';
-import { Alert, ActivityIndicator, Platform, Modal } from 'react-native';
+import { Alert, Platform, Modal } from 'react-native';
 import styled from 'styled-components/native';
+import LottieView from 'lottie-react-native';
 import { WebView } from 'react-native-webview';
 import { router } from 'expo-router';
 import { AuthRepositoryImpl } from '@/src/data/repositories/AuthRepositoryImpl';
 import { RegisterUseCase } from '@/src/domain/usecases/RegisterUseCase';
+import AnimatedBackground from '@/src/presentation/components/ui/AnimatedBackground';
+import { GlassCard } from '@/src/presentation/components/ui/Card';
+import Button from '@/src/presentation/components/ui/Button';
+import Input from '@/src/presentation/components/ui/Input';
 
 const Container = styled.KeyboardAvoidingView`
   flex: 1;
-  background-color: #0a7ea4;
 `;
 
 const Scroll = styled.ScrollView.attrs({
-  contentContainerStyle: { flexGrow: 1, justifyContent: 'center', padding: 24 },
+  contentContainerStyle: { flexGrow: 1, padding: 24 },
   keyboardShouldPersistTaps: 'handled',
 })``;
-
-const Card = styled.View`
-  background-color: #fff;
-  border-radius: 16px;
-  padding: 24px;
-  shadow-color: #000;
-  shadow-offset: 0px 2px;
-  shadow-opacity: 0.1;
-  shadow-radius: 8px;
-  elevation: 4;
-`;
 
 const Title = styled.Text`
   font-size: 26px;
   font-weight: 700;
-  color: #11181c;
+  color: ${({ theme }) => theme.colors.text};
   text-align: center;
 `;
 
 const Subtitle = styled.Text`
   font-size: 14px;
-  color: #687076;
+  color: ${({ theme }) => theme.colors.textLight};
   text-align: center;
-  margin-bottom: 24px;
+  margin-bottom: 8px;
   margin-top: 4px;
-`;
-
-const Label = styled.Text`
-  font-size: 14px;
-  font-weight: 600;
-  color: #11181c;
-  margin-bottom: 6px;
-  margin-top: 12px;
-`;
-
-const Input = styled.TextInput`
-  border-width: 1px;
-  border-color: #d0d5dd;
-  border-radius: 10px;
-  padding-horizontal: 14px;
-  padding-vertical: 12px;
-  font-size: 16px;
-  color: #11181c;
-  background-color: #f9fafb;
 `;
 
 const RoleRow = styled.View`
   flex-direction: row;
   gap: 10px;
-  margin-top: 4px;
+  margin-top: ${({ theme }) => theme.spacing.xs}px;
 `;
 
 const RoleButton = styled.TouchableOpacity<{ active: boolean }>`
@@ -72,72 +46,57 @@ const RoleButton = styled.TouchableOpacity<{ active: boolean }>`
   padding-vertical: 12px;
   border-radius: 10px;
   border-width: 1px;
-  border-color: ${(props) => (props.active ? '#0a7ea4' : '#d0d5dd')};
+  border-color: ${({ active, theme }) => (active ? theme.colors.primary : theme.colors.border)};
   align-items: center;
-  background-color: ${(props) => (props.active ? '#e6f4f9' : '#f9fafb')};
+  background-color: ${({ active, theme }) => (active ? '#D1FAE5' : 'rgba(255, 255, 255, 0.5)')};
 `;
 
 const RoleButtonText = styled.Text<{ active: boolean }>`
   font-size: 15px;
   font-weight: 600;
-  color: ${(props) => (props.active ? '#0a7ea4' : '#687076')};
+  color: ${({ active, theme }) => (active ? theme.colors.primaryDark : theme.colors.textLight)};
 `;
 
 const MapButton = styled.TouchableOpacity`
   border-width: 1px;
-  border-color: #0a7ea4;
+  border-color: ${({ theme }) => theme.colors.primary};
   border-radius: 10px;
   padding-vertical: 14px;
   align-items: center;
-  background-color: #e6f4f9;
+  background-color: #D1FAE5;
 `;
 
 const MapButtonText = styled.Text`
   font-size: 15px;
   font-weight: 600;
-  color: #0a7ea4;
+  color: ${({ theme }) => theme.colors.primaryDark};
 `;
 
 const MapCoordsText = styled.Text`
   font-size: 13px;
-  color: #0a7ea4;
+  color: ${({ theme }) => theme.colors.primaryDark};
   margin-top: 6px;
   font-weight: 500;
 `;
 
-const SubmitButton = styled.TouchableOpacity<{ disabled?: boolean }>`
-  background-color: #0a7ea4;
-  border-radius: 10px;
-  padding-vertical: 14px;
-  align-items: center;
-  margin-top: 24px;
-  opacity: ${(props) => (props.disabled ? 0.7 : 1)};
-`;
-
-const ButtonText = styled.Text`
-  color: #fff;
-  font-size: 16px;
-  font-weight: 700;
-`;
-
 const LinkText = styled.Text`
-  color: #0a7ea4;
+  color: ${({ theme }) => theme.colors.primary};
   text-align: center;
-  margin-top: 16px;
+  margin-top: ${({ theme }) => theme.spacing.md}px;
   font-size: 14px;
   font-weight: 500;
 `;
 
 const ModalOverlay = styled.View`
   flex: 1;
-  background-color: rgba(0, 0, 0, 0.5);
+  background-color: ${({ theme }) => theme.colors.overlay};
   justify-content: flex-end;
 `;
 
 const ModalContent = styled.View`
-  background-color: #fff;
-  border-top-left-radius: 24px;
-  border-top-right-radius: 24px;
+  background-color: ${({ theme }) => theme.colors.surface};
+  border-top-left-radius: ${({ theme }) => theme.borderRadius.lg}px;
+  border-top-right-radius: ${({ theme }) => theme.borderRadius.lg}px;
   height: 85%;
   overflow: hidden;
 `;
@@ -149,28 +108,22 @@ const ModalHeader = styled.View`
   padding-horizontal: 20px;
   padding-vertical: 16px;
   border-bottom-width: 1px;
-  border-bottom-color: #e5e7eb;
+  border-bottom-color: ${({ theme }) => theme.colors.border};
 `;
 
 const ModalTitle = styled.Text`
   font-size: 18px;
   font-weight: 700;
-  color: #11181c;
+  color: ${({ theme }) => theme.colors.text};
 `;
 
-const CloseButton = styled.TouchableOpacity`
+const CloseBtn = styled.TouchableOpacity`
   width: 36px;
   height: 36px;
   border-radius: 18px;
   background-color: #f3f4f6;
   justify-content: center;
   align-items: center;
-`;
-
-const CloseButtonText = styled.Text`
-  font-size: 18px;
-  color: #687076;
-  font-weight: 600;
 `;
 
 const StyledWebView = styled(WebView)`
@@ -261,40 +214,45 @@ export default function RegisterScreen() {
 
   return (
     <Container behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      <AnimatedBackground />
       <Scroll>
-        <Card>
+        <GlassCard>
           <Title>Crear Cuenta</Title>
           <Subtitle>Únete a PetAdopt</Subtitle>
 
-          <Label>Nombre completo</Label>
+          <LottieView
+            source={require('../../../../assets/animations/sign.json')}
+            autoPlay
+            loop
+            style={{ width: '100%', height: 150 }}
+            resizeMode="contain"
+          />
+
           <Input
+            label="Nombre completo"
             placeholder="Ej: Juan Pérez"
-            placeholderTextColor="#999"
             value={name}
             onChangeText={setName}
             autoCapitalize="words"
           />
 
-          <Label>Correo electrónico</Label>
           <Input
+            label="Correo electrónico"
             placeholder="correo@ejemplo.com"
-            placeholderTextColor="#999"
             value={email}
             onChangeText={setEmail}
             keyboardType="email-address"
             autoCapitalize="none"
           />
 
-          <Label>Contraseña</Label>
           <Input
+            label="Contraseña"
             placeholder="Mínimo 6 caracteres"
-            placeholderTextColor="#999"
             value={password}
             onChangeText={setPassword}
             secureTextEntry
           />
 
-          <Label>Rol</Label>
           <RoleRow>
             {ROLES.map((r) => (
               <RoleButton
@@ -314,8 +272,7 @@ export default function RegisterScreen() {
 
           {role === 'refugio' && (
             <>
-              <Label>Ubicación del refugio</Label>
-              <MapButton onPress={() => setShowMap(true)}>
+              <MapButton onPress={() => setShowMap(true)} style={{ marginTop: 16 }}>
                 <MapButtonText>
                   {location
                     ? 'Cambiar ubicación'
@@ -330,18 +287,14 @@ export default function RegisterScreen() {
             </>
           )}
 
-          <SubmitButton disabled={loading} onPress={handleRegister}>
-            {loading ? (
-              <ActivityIndicator color="#fff" />
-            ) : (
-              <ButtonText>Registrarse</ButtonText>
-            )}
-          </SubmitButton>
+          <Button loading={loading} onPress={handleRegister} style={{ marginTop: 24 }}>
+            Registrarse
+          </Button>
 
           <LinkText onPress={() => router.replace('/login')}>
             ¿Ya tienes cuenta? Inicia sesión
           </LinkText>
-        </Card>
+        </GlassCard>
       </Scroll>
 
       <Modal
@@ -354,9 +307,9 @@ export default function RegisterScreen() {
           <ModalContent>
             <ModalHeader>
               <ModalTitle>Seleccionar ubicación</ModalTitle>
-              <CloseButton onPress={() => setShowMap(false)}>
-                <CloseButtonText>✕</CloseButtonText>
-              </CloseButton>
+              <CloseBtn onPress={() => setShowMap(false)}>
+                <CloseBtnText>✕</CloseBtnText>
+              </CloseBtn>
             </ModalHeader>
             <StyledWebView
               source={{ html: leafletHtml }}
@@ -371,3 +324,9 @@ export default function RegisterScreen() {
     </Container>
   );
 }
+
+const CloseBtnText = styled.Text`
+  font-size: 18px;
+  color: ${({ theme }) => theme.colors.textLight};
+  font-weight: 600;
+`;

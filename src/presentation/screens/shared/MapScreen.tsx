@@ -1,9 +1,14 @@
 import { useState, useEffect } from 'react';
 import { ActivityIndicator } from 'react-native';
 import styled from 'styled-components/native';
+import { useTheme } from 'styled-components/native';
 import { WebView } from 'react-native-webview';
+import { Ionicons } from '@expo/vector-icons';
 import { UserRepositoryImpl } from '@/src/data/repositories/UserRepositoryImpl';
 import { GetRefugiosUseCase } from '@/src/domain/usecases/GetRefugiosUseCase';
+import AnimatedBackground from '@/src/presentation/components/ui/AnimatedBackground';
+import GlassHeader from '@/src/presentation/components/ui/GlassHeader';
+import { MainContainer } from '@/src/presentation/components/ui/Card';
 
 const Container = styled.View`
   flex: 1;
@@ -13,6 +18,13 @@ const Loader = styled.View`
   flex: 1;
   justify-content: center;
   align-items: center;
+`;
+
+const MapWrapper = styled.View`
+  flex: 1;
+  border-radius: 24px;
+  overflow: hidden;
+  margin-bottom: 16px;
 `;
 
 const StyledWebView = styled(WebView)`
@@ -65,6 +77,7 @@ function buildLeafletHtml(refugios: { name: string; location: string }[]): strin
 }
 
 export default function MapScreen() {
+  const theme = useTheme();
   const [refugios, setRefugios] = useState<{ name: string; location: string }[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -90,20 +103,35 @@ export default function MapScreen() {
 
   if (loading) {
     return (
-      <Loader>
-        <ActivityIndicator size="large" color="#0a7ea4" />
-      </Loader>
+      <Container>
+        <AnimatedBackground />
+        <Loader>
+          <ActivityIndicator size="large" color={theme.colors.primary} />
+        </Loader>
+      </Container>
     );
   }
 
   return (
     <Container>
-      <StyledWebView
-        source={{ html: buildLeafletHtml(refugios) }}
-        javaScriptEnabled
-        domStorageEnabled
-        originWhitelist={['*']}
+      <AnimatedBackground />
+      <GlassHeader
+        title="Refugios Cercanos"
+        leftIcon={
+          <Ionicons name="map" size={22} color="#10B981" />
+        }
       />
+
+      <MainContainer>
+        <MapWrapper>
+          <StyledWebView
+            source={{ html: buildLeafletHtml(refugios) }}
+            javaScriptEnabled
+            domStorageEnabled
+            originWhitelist={['*']}
+          />
+        </MapWrapper>
+      </MainContainer>
     </Container>
   );
 }

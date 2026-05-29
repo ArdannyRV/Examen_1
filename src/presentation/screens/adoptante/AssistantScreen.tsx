@@ -2,36 +2,16 @@ import { useState } from 'react';
 import { FlatList } from 'react-native';
 import styled from 'styled-components/native';
 import { Ionicons } from '@expo/vector-icons';
+import AnimatedBackground from '@/src/presentation/components/ui/AnimatedBackground';
+import GlassHeader from '@/src/presentation/components/ui/GlassHeader';
+import { MainContainer } from '@/src/presentation/components/ui/Card';
 
 const Container = styled.View`
   flex: 1;
-  background-color: #f5f7fa;
-`;
-
-const Header = styled.View`
-  background-color: #0a7ea4;
-  padding-top: 60px;
-  padding-bottom: 20px;
-  padding-horizontal: 20px;
-  border-bottom-left-radius: 24px;
-  border-bottom-right-radius: 24px;
-`;
-
-const HeaderTitle = styled.Text`
-  font-size: 24px;
-  font-weight: 700;
-  color: #fff;
-`;
-
-const HeaderSubtitle = styled.Text`
-  font-size: 14px;
-  color: rgba(255, 255, 255, 0.8);
-  margin-top: 4px;
 `;
 
 const MessageList = styled(FlatList<Message>)`
   flex: 1;
-  padding-horizontal: 16px;
 ` as unknown as typeof FlatList;
 
 const BubbleRow = styled.View<{ isUser: boolean }>`
@@ -42,7 +22,7 @@ const BubbleRow = styled.View<{ isUser: boolean }>`
 
 const Bubble = styled.View<{ isUser: boolean }>`
   max-width: 80%;
-  background-color: ${(props) => (props.isUser ? '#0a7ea4' : '#fff')};
+  background-color: ${({ isUser, theme }) => (isUser ? theme.colors.primary : theme.colors.surface)};
   border-radius: 16px;
   padding: 12px 16px;
   border-bottom-right-radius: ${(props) => (props.isUser ? '4px' : '16px')};
@@ -56,30 +36,30 @@ const Bubble = styled.View<{ isUser: boolean }>`
 
 const BubbleText = styled.Text<{ isUser: boolean }>`
   font-size: 15px;
-  color: ${(props) => (props.isUser ? '#fff' : '#11181c')};
+  color: ${({ isUser, theme }) => (isUser ? '#fff' : theme.colors.text)};
   line-height: 21px;
 `;
 
 const InputBar = styled.View`
   flex-direction: row;
   align-items: center;
-  background-color: #fff;
+  background-color: rgba(255, 255, 255, 0.9);
   padding-horizontal: 16px;
   padding-vertical: 12px;
   border-top-width: 1px;
-  border-top-color: #e5e7eb;
+  border-top-color: ${({ theme }) => theme.colors.border};
 `;
 
 const ChatInput = styled.TextInput`
   flex: 1;
   border-width: 1px;
-  border-color: #d0d5dd;
+  border-color: ${({ theme }) => theme.colors.border};
   border-radius: 24px;
   padding-horizontal: 16px;
   padding-vertical: 10px;
   font-size: 15px;
-  color: #11181c;
-  background-color: #f9fafb;
+  color: ${({ theme }) => theme.colors.text};
+  background-color: ${({ theme }) => theme.colors.background};
   margin-right: 10px;
 `;
 
@@ -87,7 +67,7 @@ const SendButton = styled.TouchableOpacity`
   width: 44px;
   height: 44px;
   border-radius: 22px;
-  background-color: #0a7ea4;
+  background-color: ${({ theme }) => theme.colors.primary};
   justify-content: center;
   align-items: center;
 `;
@@ -142,23 +122,23 @@ export default function AssistantScreen() {
 
   return (
     <Container>
-      <Header>
-        <HeaderTitle>Asistente IA</HeaderTitle>
-        <HeaderSubtitle>Consulta sobre cuidados y adopción</HeaderSubtitle>
-      </Header>
+      <AnimatedBackground />
+      <GlassHeader title="Asistente IA" />
 
-      <MessageList
-        data={messages}
-        keyExtractor={(item: Message) => item.id}
-        contentContainerStyle={{ paddingVertical: 16 }}
-        renderItem={({ item }: { item: Message }) => (
-          <BubbleRow isUser={item.isUser}>
-            <Bubble isUser={item.isUser}>
-              <BubbleText isUser={item.isUser}>{item.text}</BubbleText>
-            </Bubble>
-          </BubbleRow>
-        )}
-      />
+      <MainContainer style={{ paddingHorizontal: 16, paddingBottom: 0 }}>
+        <MessageList
+          data={messages}
+          keyExtractor={(item: Message) => item.id}
+          contentContainerStyle={{ paddingVertical: 16 }}
+          renderItem={({ item }: { item: Message }) => (
+            <BubbleRow isUser={item.isUser}>
+              <Bubble isUser={item.isUser}>
+                <BubbleText isUser={item.isUser}>{item.text}</BubbleText>
+              </Bubble>
+            </BubbleRow>
+          )}
+        />
+      </MainContainer>
 
       <InputBar>
         <ChatInput

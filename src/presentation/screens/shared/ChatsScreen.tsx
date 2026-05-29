@@ -1,31 +1,18 @@
 import { FlatList } from 'react-native';
 import styled from 'styled-components/native';
 import { Ionicons } from '@expo/vector-icons';
+import AnimatedBackground from '@/src/presentation/components/ui/AnimatedBackground';
+import GlassHeader from '@/src/presentation/components/ui/GlassHeader';
+import { MainContainer } from '@/src/presentation/components/ui/Card';
 
 const Container = styled.View`
   flex: 1;
-  background-color: #f5f7fa;
-`;
-
-const Header = styled.View`
-  background-color: #0a7ea4;
-  padding-top: 60px;
-  padding-bottom: 20px;
-  padding-horizontal: 20px;
-  border-bottom-left-radius: 24px;
-  border-bottom-right-radius: 24px;
-`;
-
-const HeaderTitle = styled.Text`
-  font-size: 24px;
-  font-weight: 700;
-  color: #fff;
 `;
 
 const Card = styled.TouchableOpacity`
-  background-color: #fff;
+  background-color: ${({ theme }) => theme.colors.surface};
   border-radius: 16px;
-  margin-horizontal: 20px;
+  margin-horizontal: 4px;
   margin-bottom: 12px;
   flex-direction: row;
   align-items: center;
@@ -54,19 +41,19 @@ const Info = styled.View`
 const ContactName = styled.Text`
   font-size: 16px;
   font-weight: 700;
-  color: #11181c;
+  color: ${({ theme }) => theme.colors.text};
 `;
 
 const LastMessage = styled.Text`
   font-size: 13px;
-  color: #687076;
+  color: ${({ theme }) => theme.colors.textLight};
   margin-top: 3px;
   max-width: 200px;
 `;
 
 const Time = styled.Text`
   font-size: 12px;
-  color: #9ca3af;
+  color: ${({ theme }) => theme.colors.textMuted};
   align-self: flex-start;
 `;
 
@@ -106,27 +93,28 @@ const mockChats = [
 export default function ChatsScreen() {
   return (
     <Container>
-      <Header>
-        <HeaderTitle>Chats</HeaderTitle>
-      </Header>
+      <AnimatedBackground />
+      <GlassHeader title="Chats" />
 
-      <FlatList
-        data={mockChats}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={{ paddingTop: 20, paddingBottom: 24 }}
-        renderItem={({ item }) => (
-          <Card activeOpacity={0.95}>
-            <Avatar>
-              <Ionicons name="person" size={24} color="#0a7ea4" />
-            </Avatar>
-            <Info>
-              <ContactName>{item.contact}</ContactName>
-              <LastMessage numberOfLines={1}>{item.message}</LastMessage>
-            </Info>
-            <Time>{item.time}</Time>
-          </Card>
-        )}
-      />
+      <MainContainer style={{ paddingHorizontal: 16 }}>
+        <FlatList
+          data={mockChats}
+          keyExtractor={(item) => item.id}
+          contentContainerStyle={{ flexGrow: 1, paddingTop: 16, paddingBottom: 24 }}
+          renderItem={({ item }) => (
+            <Card activeOpacity={0.95}>
+              <Avatar>
+                <Ionicons name="person" size={24} color="#10B981" />
+              </Avatar>
+              <Info>
+                <ContactName>{item.contact}</ContactName>
+                <LastMessage numberOfLines={1}>{item.message}</LastMessage>
+              </Info>
+              <Time>{item.time}</Time>
+            </Card>
+          )}
+        />
+      </MainContainer>
     </Container>
   );
 }
