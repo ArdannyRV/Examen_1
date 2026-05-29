@@ -4,8 +4,9 @@ const Page = styled.main`
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 100%;
+  min-height: 100vh;
   padding: 1.5rem;
+  background-color: #fdfbf7;
 `
 
 const Card = styled.div`
@@ -13,7 +14,8 @@ const Card = styled.div`
   max-width: 440px;
   padding: 2.5rem 2rem;
   text-align: center;
-  background: #fff;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
   border-radius: 16px;
   box-shadow:
     0 4px 6px -1px rgb(0 0 0 / 0.08),
@@ -42,7 +44,9 @@ const CheckCircle = styled.div`
   height: 72px;
   margin: 0 auto 1.5rem;
   font-size: 2.25rem;
-  background: #ecfdf5;
+  font-weight: 700;
+  color: #10b981;
+  background: #fdfbf7;
   border: 3px solid #10b981;
   border-radius: 50%;
   animation: ${popIn} 0.5s ease-out forwards;
@@ -52,14 +56,14 @@ const Title = styled.h1`
   margin: 0 0 1rem;
   font-size: 1.35rem;
   font-weight: 700;
-  color: #1a1a2e;
+  color: #1f2937;
   line-height: 1.4;
 `
 
 const Text = styled.p`
   margin: 0;
   font-size: 0.95rem;
-  color: #64748b;
+  color: #6b7280;
   line-height: 1.6;
 `
 
@@ -67,7 +71,7 @@ export default function Confirm() {
   return (
     <Page>
       <Card>
-        <CheckCircle aria-hidden="true">✅</CheckCircle>
+        <CheckCircle aria-hidden="true">✓</CheckCircle>
         <Title>¡Cuenta confirmada!</Title>
         <Text>
           ¡Tu cuenta ha sido confirmada con éxito! Ya puedes cerrar esta

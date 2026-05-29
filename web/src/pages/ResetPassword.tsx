@@ -6,15 +6,17 @@ const Page = styled.main`
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 100%;
+  min-height: 100vh;
   padding: 1.5rem;
+  background-color: #fdfbf7;
 `
 
 const Card = styled.div`
   width: 100%;
   max-width: 420px;
   padding: 2.5rem 2rem;
-  background: #fff;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
   border-radius: 16px;
   box-shadow:
     0 4px 6px -1px rgb(0 0 0 / 0.08),
@@ -25,14 +27,14 @@ const Title = styled.h1`
   margin: 0 0 0.5rem;
   font-size: 1.5rem;
   font-weight: 700;
-  color: #1a1a2e;
+  color: #1f2937;
   text-align: center;
 `
 
 const Subtitle = styled.p`
   margin: 0 0 1.75rem;
   font-size: 0.9rem;
-  color: #64748b;
+  color: #6b7280;
   text-align: center;
   line-height: 1.5;
 `
@@ -42,28 +44,23 @@ const Label = styled.label`
   margin-bottom: 0.5rem;
   font-size: 0.875rem;
   font-weight: 600;
-  color: #334155;
+  color: #1f2937;
 `
 
 const Input = styled.input`
   width: 100%;
   padding: 0.75rem 1rem;
-  margin-bottom: 1.25rem;
+  margin-bottom: 1rem;
   font-size: 1rem;
-  border: 1px solid #e2e8f0;
-  border-radius: 10px;
-  background: #f8fafc;
-  color: #1e293b;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  color: #1f2937;
   box-sizing: border-box;
-  transition:
-    border-color 0.2s,
-    box-shadow 0.2s;
 
   &:focus {
+    border-color: #10b981;
     outline: none;
-    border-color: #6366f1;
-    box-shadow: 0 0 0 3px rgb(99 102 241 / 0.15);
-    background: #fff;
   }
 
   &:disabled {
@@ -74,29 +71,23 @@ const Input = styled.input`
 
 const Button = styled.button`
   width: 100%;
-  padding: 0.875rem 1rem;
+  padding: 0.75rem 1rem;
   font-size: 1rem;
   font-weight: 600;
-  color: #fff;
-  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  color: #ffffff;
+  background: #10b981;
   border: none;
-  border-radius: 10px;
+  border-radius: 8px;
   cursor: pointer;
-  transition:
-    opacity 0.2s,
-    transform 0.1s;
+  transition: background-color 0.2s;
 
   &:hover:not(:disabled) {
-    opacity: 0.95;
-  }
-
-  &:active:not(:disabled) {
-    transform: scale(0.98);
+    background: #059669;
   }
 
   &:disabled {
-    opacity: 0.55;
-    cursor: not-allowed;
+    opacity: 0.7;
+    cursor: default;
   }
 `
 
@@ -106,26 +97,26 @@ const Message = styled.p<{ $variant: 'success' | 'error' | 'info' }>`
   font-size: 0.875rem;
   line-height: 1.5;
   text-align: center;
-  border-radius: 10px;
+  border-radius: 8px;
   background: ${({ $variant }) =>
     $variant === 'success'
-      ? '#ecfdf5'
+      ? '#fdfbf7'
       : $variant === 'error'
         ? '#fef2f2'
-        : '#f1f5f9'};
+        : '#f9fafb'};
   color: ${({ $variant }) =>
     $variant === 'success'
-      ? '#047857'
+      ? '#10b981'
       : $variant === 'error'
-        ? '#b91c1c'
-        : '#475569'};
+        ? '#ef4444'
+        : '#6b7280'};
   border: 1px solid
     ${({ $variant }) =>
       $variant === 'success'
-        ? '#a7f3d0'
+        ? '#10b981'
         : $variant === 'error'
           ? '#fecaca'
-          : '#e2e8f0'};
+          : '#e5e7eb'};
 `
 
 export default function ResetPassword() {
