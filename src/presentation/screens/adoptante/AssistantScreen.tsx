@@ -1,9 +1,11 @@
-import { useState } from 'react';
-import { FlatList } from 'react-native';
+import { useState, useRef } from 'react';
+import { FlatList, ActivityIndicator } from 'react-native';
 import styled from 'styled-components/native';
 import { Ionicons } from '@expo/vector-icons';
 import AnimatedBackground from '@/src/presentation/components/ui/AnimatedBackground';
 import { MainContainer } from '@/src/presentation/components/ui/Card';
+import { AssistantRepositoryImpl } from '@/src/data/repositories/AssistantRepositoryImpl';
+import { SendMessageUseCase } from '@/src/domain/usecases/SendMessageUseCase';
 
 const Container = styled.View`
   flex: 1;
@@ -72,52 +74,78 @@ const SendButton = styled.TouchableOpacity`
   align-items: center;
 `;
 
+const TypingContainer = styled.View`
+  align-items: flex-start;
+  margin-vertical: 4px;
+`;
+
+const TypingBubble = styled.View`
+  background-color: ${({ theme }) => theme.colors.surface};
+  border-radius: 16px;
+  padding: 14px 20px;
+  border-bottom-left-radius: 4px;
+  flex-direction: row;
+  align-items: center;
+  gap: 4px;
+`;
+
+const TypingDot = styled.View`
+  width: 8px;
+  height: 8px;
+  border-radius: 4px;
+  background-color: ${({ theme }) => theme.colors.textMuted};
+`;
+
 interface Message {
   id: string;
   text: string;
   isUser: boolean;
 }
 
-const initialMessages: Message[] = [
-  {
-    id: '1',
-    text: '¡Hola! Soy el asistente de PetAdopt. ¿En qué puedo ayudarte? Puedes preguntarme sobre cuidados de mascotas, razas, o consejos de adopción.',
-    isUser: false,
-  },
-  {
-    id: '2',
-    text: '¿Qué cuidados necesita un Golden Retriever?',
-    isUser: true,
-  },
-  {
-    id: '3',
-    text: 'Los Golden Retrievers necesitan ejercicio diario (al menos 1 hora), cepillado frecuente por su doble capa de pelo, y una dieta balanceada. Son perros muy sociables que requieren atención constante. ¿Te interesa alguna raza en particular?',
-    isUser: false,
-  },
-];
-
 export default function AssistantScreen() {
-  const [messages, setMessages] = useState<Message[]>(initialMessages);
+  const [messages, setMessages] = useState<Message[]>([
+    {
+      id: '1',
+      text: '¡Hola! Soy el asistente de PetAdopt. ¿En qué puedo ayudarte? Puedes preguntarme sobre cuidados de mascotas, razas, o consejos de adopción.',
+      isUser: false,
+    },
+  ]);
   const [input, setInput] = useState('');
+  const [loading, setLoading] = useState(false);
+  const listRef = useRef<FlatList>(null);
 
-  const handleSend = () => {
-    if (!input.trim()) return;
-    const userMsg: Message = {
-      id: Date.now().toString(),
-      text: input.trim(),
-      isUser: true,
-    };
+  const handleSend = async () => {
+    if (!input.trim() || loading) return;
+
+    const userMsg: Message = { id: Date.now().toString(), text: input.trim(), isUser: true };
     setMessages((prev) => [...prev, userMsg]);
     setInput('');
+    setLoading(true);
 
-    setTimeout(() => {
-      const botMsg: Message = {
+    try {
+      const history = messages
+        .filter((m) => m.id !== '1')
+        .map((m) => ({
+          role: m.isUser ? 'user' as const : 'model' as const,
+          parts: [{ text: m.text }],
+        }));
+
+      const repository = new AssistantRepositoryImpl();
+      const useCase = new SendMessageUseCase(repository);
+      const reply = await useCase.execute(userMsg.text, history);
+
+      const botMsg: Message = { id: (Date.now() + 1).toString(), text: reply, isUser: false };
+      setMessages((prev) => [...prev, botMsg]);
+    } catch {
+      const errMsg: Message = {
         id: (Date.now() + 1).toString(),
-        text: 'Entiendo tu consulta. Actualmente estoy en modo demo, pero pronto podré darte respuestas más precisas usando inteligencia artificial. 😊',
+        text: 'Lo siento, ocurrió un error al procesar tu mensaje. Intenta de nuevo.',
         isUser: false,
       };
-      setMessages((prev) => [...prev, botMsg]);
-    }, 800);
+      setMessages((prev) => [...prev, errMsg]);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -125,10 +153,12 @@ export default function AssistantScreen() {
       <AnimatedBackground />
       <MainContainer style={{ paddingHorizontal: 16, paddingBottom: 0 }}>
         <MessageList
+          ref={listRef}
           data={messages}
           keyExtractor={(item: Message) => item.id}
           style={{ flex: 1 }}
           contentContainerStyle={{ paddingVertical: 16, paddingBottom: 120 }}
+          onContentSizeChange={() => listRef.current?.scrollToEnd({ animated: true })}
           renderItem={({ item }: { item: Message }) => (
             <BubbleRow isUser={item.isUser}>
               <Bubble isUser={item.isUser}>
@@ -136,6 +166,17 @@ export default function AssistantScreen() {
               </Bubble>
             </BubbleRow>
           )}
+          ListFooterComponent={
+            loading ? (
+              <TypingContainer>
+                <TypingBubble>
+                  <TypingDot style={{ opacity: 0.4 }} />
+                  <TypingDot style={{ opacity: 0.7 }} />
+                  <TypingDot style={{ opacity: 1 }} />
+                </TypingBubble>
+              </TypingContainer>
+            ) : null
+          }
         />
       </MainContainer>
 
@@ -145,9 +186,15 @@ export default function AssistantScreen() {
           placeholderTextColor="#999"
           value={input}
           onChangeText={setInput}
+          onSubmitEditing={handleSend}
+          editable={!loading}
         />
-        <SendButton onPress={handleSend}>
-          <Ionicons name="send" size={20} color="#fff" />
+        <SendButton onPress={handleSend} disabled={loading}>
+          {loading ? (
+            <ActivityIndicator color="#fff" size="small" />
+          ) : (
+            <Ionicons name="send" size={20} color="#fff" />
+          )}
         </SendButton>
       </InputBar>
     </Container>

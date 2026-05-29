@@ -20,4 +20,21 @@ export class UserRepositoryImpl implements IUserRepository {
       location: item.location,
     }));
   }
+
+  async getContacts(currentRole: string): Promise<User[]> {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('*')
+      .neq('role', currentRole);
+
+    if (error) throw new Error(error.message);
+
+    return (data ?? []).map((item) => ({
+      id: item.id,
+      email: item.email ?? '',
+      name: item.name ?? '',
+      role: item.role as 'adoptante' | 'refugio',
+      location: item.location,
+    }));
+  }
 }

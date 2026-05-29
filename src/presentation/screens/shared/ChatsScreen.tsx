@@ -1,15 +1,21 @@
-import { FlatList } from 'react-native';
+import { useState, useCallback } from 'react';
+import { FlatList, ActivityIndicator } from 'react-native';
 import styled from 'styled-components/native';
 import { Ionicons } from '@expo/vector-icons';
+import { useFocusEffect, router } from 'expo-router';
+import { useAuth } from '@/src/presentation/context/AuthContext';
 import AnimatedBackground from '@/src/presentation/components/ui/AnimatedBackground';
 import { MainContainer } from '@/src/presentation/components/ui/Card';
+import { UserRepositoryImpl } from '@/src/data/repositories/UserRepositoryImpl';
+import { GetContactsUseCase } from '@/src/domain/usecases/GetContactsUseCase';
+import type { User } from '@/src/domain/entities/User';
 
 const Container = styled.View`
   flex: 1;
   background-color: transparent;
 `;
 
-const Card = styled.TouchableOpacity`
+const ContactCard = styled.TouchableOpacity`
   background-color: ${({ theme }) => theme.colors.surface};
   border-radius: 16px;
   margin-horizontal: 4px;
@@ -44,75 +50,128 @@ const ContactName = styled.Text`
   color: ${({ theme }) => theme.colors.text};
 `;
 
-const LastMessage = styled.Text`
-  font-size: 13px;
-  color: ${({ theme }) => theme.colors.textLight};
-  margin-top: 3px;
-  max-width: 200px;
-`;
-
-const Time = styled.Text`
-  font-size: 12px;
-  color: ${({ theme }) => theme.colors.textMuted};
+const RoleBadge = styled.View`
   align-self: flex-start;
+  margin-top: 4px;
+  background-color: ${({ theme }) => theme.colors.primary}20;
+  padding-horizontal: 10px;
+  padding-vertical: 2px;
+  border-radius: 8px;
 `;
 
-const mockChats = [
-  {
-    id: '1',
-    contact: 'Refugio Patitas',
-    message: '¡Tu solicitud fue aprobada! Ven a conocer a Luna 🐾',
-    time: '10:30 AM',
-  },
-  {
-    id: '2',
-    contact: 'Juan Pérez',
-    message: 'Hola, me interesa adoptar a Milo. ¿Sigue disponible?',
-    time: '9:15 AM',
-  },
-  {
-    id: '3',
-    contact: 'María García',
-    message: 'Muchas gracias por la información. Saludos!',
-    time: 'Ayer',
-  },
-  {
-    id: '4',
-    contact: 'Refugio Esperanza',
-    message: 'Te recordamos la cita para adoptar este sábado.',
-    time: 'Ayer',
-  },
-  {
-    id: '5',
-    contact: 'Carlos López',
-    message: '¿A qué hora puedo pasar a visitar a los perritos?',
-    time: 'Lun',
-  },
-];
+const RoleText = styled.Text`
+  font-size: 12px;
+  font-weight: 600;
+  color: ${({ theme }) => theme.colors.primary};
+  text-transform: capitalize;
+`;
+
+const ChatIcon = styled.View`
+  width: 36px;
+  height: 36px;
+  border-radius: 18px;
+  background-color: ${({ theme }) => theme.colors.primary};
+  justify-content: center;
+  align-items: center;
+  margin-left: 8px;
+`;
+
+const EmptyState = styled.View`
+  flex: 1;
+  justify-content: center;
+  align-items: center;
+  padding-horizontal: 40px;
+`;
+
+const EmptyText = styled.Text`
+  font-size: 16px;
+  color: ${({ theme }) => theme.colors.textLight};
+  text-align: center;
+  margin-top: 12px;
+`;
+
+const Loader = styled.View`
+  flex: 1;
+  justify-content: center;
+  align-items: center;
+`;
 
 export default function ChatsScreen() {
+  const { role, user } = useAuth();
+  const [contacts, setContacts] = useState<User[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useFocusEffect(
+    useCallback(() => {
+      const load = async () => {
+        if (!role) return;
+        setLoading(true);
+        try {
+          const repository = new UserRepositoryImpl();
+          const useCase = new GetContactsUseCase(repository);
+          const data = await useCase.execute(role);
+          setContacts(data);
+        } catch {
+          setContacts([]);
+        } finally {
+          setLoading(false);
+        }
+      };
+      load();
+    }, [role])
+  );
+
+  if (loading) {
+    return (
+      <Container>
+        <AnimatedBackground />
+        <Loader>
+          <ActivityIndicator size="large" color="#10B981" />
+        </Loader>
+      </Container>
+    );
+  }
+
   return (
     <Container>
       <AnimatedBackground />
       <MainContainer style={{ paddingHorizontal: 16 }}>
-        <FlatList
-          data={mockChats}
-          keyExtractor={(item) => item.id}
-          style={{ flex: 1 }}
-          contentContainerStyle={{ flexGrow: 1, paddingTop: 16, paddingBottom: 120 }}
-          renderItem={({ item }) => (
-            <Card activeOpacity={0.95}>
-              <Avatar>
-                <Ionicons name="person" size={24} color="#10B981" />
-              </Avatar>
-              <Info>
-                <ContactName>{item.contact}</ContactName>
-                <LastMessage numberOfLines={1}>{item.message}</LastMessage>
-              </Info>
-              <Time>{item.time}</Time>
-            </Card>
-          )}
-        />
+        {contacts.length === 0 ? (
+          <EmptyState>
+            <Ionicons name="chatbubbles-outline" size={64} color="#d0d5dd" />
+            <EmptyText>
+              {role === 'adoptante'
+                ? 'No hay refugios disponibles para contactar aún.'
+                : 'No hay adoptantes disponibles para contactar aún.'}
+            </EmptyText>
+          </EmptyState>
+        ) : (
+          <FlatList
+            data={contacts}
+            keyExtractor={(item) => item.id}
+            style={{ flex: 1 }}
+            contentContainerStyle={{ paddingTop: 16, paddingBottom: 120 }}
+            renderItem={({ item }) => (
+              <ContactCard
+                activeOpacity={0.95}
+                onPress={() => router.push(`/chat/${item.id}`)}
+              >
+                <Avatar>
+                  <Ionicons name="person" size={24} color="#10B981" />
+                </Avatar>
+                <Info>
+                  <ContactName>{item.name}</ContactName>
+                  <RoleBadge>
+                    <RoleText>{item.role}</RoleText>
+                  </RoleBadge>
+                </Info>
+                <ChatIcon>
+                  <Ionicons name="chatbubble-ellipses" size={18} color="#fff" />
+                </ChatIcon>
+              </ContactCard>
+            )}
+          />
+        )}
       </MainContainer>
     </Container>
   );
