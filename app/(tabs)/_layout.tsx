@@ -1,8 +1,10 @@
-import { ActivityIndicator, TouchableOpacity, View } from 'react-native';
-import { Tabs } from 'expo-router';
+import { ActivityIndicator, Alert, TouchableOpacity, View } from 'react-native';
+import { Tabs, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '@/src/presentation/context/AuthContext';
 import { useTheme } from 'styled-components/native';
+import { AuthRepositoryImpl } from '@/src/data/repositories/AuthRepositoryImpl';
+import { LogoutUseCase } from '@/src/domain/usecases/LogoutUseCase';
 import type { ComponentProps } from 'react';
 
 type IoniconsName = ComponentProps<typeof Ionicons>['name'];
@@ -48,6 +50,18 @@ function TabBarButton(props: {
 export default function TabsLayout() {
   const { role, loading } = useAuth();
   const theme = useTheme();
+  const router = useRouter();
+
+  const handleLogout = async () => {
+    try {
+      const authRepo = new AuthRepositoryImpl();
+      const logoutUseCase = new LogoutUseCase(authRepo);
+      await logoutUseCase.execute();
+      router.replace('/(auth)/login');
+    } catch {
+      Alert.alert('Error', 'No se pudo cerrar la sesión');
+    }
+  };
 
   if (loading) {
     return (
@@ -99,6 +113,14 @@ export default function TabsLayout() {
             options={{
               title: tab.label,
               href,
+              headerRight: tab.name === 'lobby' ? () => (
+                <TouchableOpacity
+                  onPress={handleLogout}
+                  style={{ marginRight: 16 }}
+                >
+                  <Ionicons name="log-out-outline" size={22} color={theme.colors.textMuted} />
+                </TouchableOpacity>
+              ) : undefined,
               tabBarIcon: ({ color }) => (
                 <Ionicons
                   name={tab.icon}
