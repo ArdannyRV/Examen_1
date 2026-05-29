@@ -1,35 +1,90 @@
 import { Tabs } from 'expo-router';
-import React from 'react';
+import { TouchableOpacity, Text } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import type { ComponentProps } from 'react';
 
-import { HapticTab } from '@/components/haptic-tab';
-import { IconSymbol } from '@/components/ui/icon-symbol';
-import { Colors } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+type IoniconsName = ComponentProps<typeof Ionicons>['name'];
 
-export default function TabLayout() {
-  const colorScheme = useColorScheme();
+const tabs: { name: string; label: string; icon: IoniconsName }[] = [
+  { name: 'lobby', label: 'Explorar', icon: 'search' },
+  { name: 'mapa', label: 'Mapa', icon: 'map' },
+  { name: 'asistente', label: 'Asistente', icon: 'chatbubble-ellipses' },
+  { name: 'solicitudes', label: 'Solicitudes', icon: 'document-text' },
+  { name: 'perfil', label: 'Perfil', icon: 'person' },
+];
 
+function TabBarButton(props: {
+  children: React.ReactNode;
+  onPress?: () => void;
+  accessibilityState?: { selected?: boolean };
+}) {
+  const focused = props.accessibilityState?.selected ?? false;
+
+  return (
+    <TouchableOpacity
+      onPress={props.onPress}
+      activeOpacity={0.7}
+      style={{
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: focused ? '#0d9488' : 'transparent',
+        borderRadius: 20,
+        marginHorizontal: 4,
+        marginVertical: 8,
+        paddingHorizontal: 8,
+        paddingVertical: 6,
+      }}
+    >
+      {props.children}
+    </TouchableOpacity>
+  );
+}
+
+export default function TabsLayout() {
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
         headerShown: false,
-        tabBarButton: HapticTab,
-      }}>
-      <Tabs.Screen
-        name="index"
-        options={{
-          title: 'Home',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
-        }}
-      />
-      <Tabs.Screen
-        name="explore"
-        options={{
-          title: 'Explore',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="paperplane.fill" color={color} />,
-        }}
-      />
+        tabBarShowLabel: true,
+        tabBarActiveTintColor: '#fff',
+        tabBarInactiveTintColor: '#687076',
+        tabBarLabelStyle: {
+          fontSize: 11,
+          fontWeight: '600',
+          marginTop: 2,
+        },
+        tabBarStyle: {
+          backgroundColor: '#fff',
+          borderTopWidth: 0,
+          elevation: 10,
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: -2 },
+          shadowOpacity: 0.08,
+          shadowRadius: 12,
+          height: 70,
+          paddingTop: 6,
+          paddingBottom: 8,
+        },
+        tabBarButton: (props) => <TabBarButton {...props} />,
+      }}
+    >
+      {tabs.map((tab) => (
+        <Tabs.Screen
+          key={tab.name}
+          name={tab.name}
+          options={{
+            title: tab.label,
+            tabBarIcon: ({ focused, color }) => (
+              <Ionicons
+                name={tab.icon}
+                size={22}
+                color={focused ? '#fff' : color}
+              />
+            ),
+          }}
+        />
+      ))}
     </Tabs>
   );
 }
