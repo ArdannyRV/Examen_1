@@ -1,10 +1,11 @@
 import { useState, useCallback } from 'react';
-import { FlatList, ActivityIndicator } from 'react-native';
+import { FlatList, ActivityIndicator, View } from 'react-native';
 import styled from 'styled-components/native';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect, router } from 'expo-router';
 import { useAuth } from '@/src/presentation/context/AuthContext';
 import AnimatedBackground from '@/src/presentation/components/ui/AnimatedBackground';
+import Input from '@/src/presentation/components/ui/Input';
 import { MainContainer } from '@/src/presentation/components/ui/Card';
 import { UserRepositoryImpl } from '@/src/data/repositories/UserRepositoryImpl';
 import { GetContactsUseCase } from '@/src/domain/usecases/GetContactsUseCase';
@@ -99,7 +100,12 @@ const Loader = styled.View`
 export default function ChatsScreen() {
   const { role, user } = useAuth();
   const [contacts, setContacts] = useState<User[]>([]);
+  const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
+
+  const filteredContacts = contacts.filter(contact =>
+    contact.name?.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   useFocusEffect(
     useCallback(() => {
@@ -146,31 +152,40 @@ export default function ChatsScreen() {
             </EmptyText>
           </EmptyState>
         ) : (
-          <FlatList
-            data={contacts}
-            keyExtractor={(item) => item.id}
-            style={{ flex: 1 }}
-            contentContainerStyle={{ paddingTop: 16, paddingBottom: 120 }}
-            renderItem={({ item }) => (
-              <ContactCard
-                activeOpacity={0.95}
-                onPress={() => router.push(`/chat/${item.id}`)}
-              >
-                <Avatar>
-                  <Ionicons name="person" size={24} color="#10B981" />
-                </Avatar>
-                <Info>
-                  <ContactName>{item.name}</ContactName>
-                  <RoleBadge>
-                    <RoleText>{item.role}</RoleText>
-                  </RoleBadge>
-                </Info>
-                <ChatIcon>
-                  <Ionicons name="chatbubble-ellipses" size={18} color="#fff" />
-                </ChatIcon>
-              </ContactCard>
-            )}
-          />
+          <>
+            <View style={{ paddingBottom: 16 }}>
+              <Input
+                placeholder="Buscar por nombre..."
+                value={searchQuery}
+                onChangeText={setSearchQuery}
+              />
+            </View>
+            <FlatList
+              data={filteredContacts}
+              keyExtractor={(item) => item.id}
+              style={{ flex: 1 }}
+              contentContainerStyle={{ paddingTop: 16, paddingBottom: 120 }}
+              renderItem={({ item }) => (
+                <ContactCard
+                  activeOpacity={0.95}
+                  onPress={() => router.push(`/chat/${item.id}`)}
+                >
+                  <Avatar>
+                    <Ionicons name="person" size={24} color="#10B981" />
+                  </Avatar>
+                  <Info>
+                    <ContactName>{item.name}</ContactName>
+                    <RoleBadge>
+                      <RoleText>{item.role}</RoleText>
+                    </RoleBadge>
+                  </Info>
+                  <ChatIcon>
+                    <Ionicons name="chatbubble-ellipses" size={18} color="#fff" />
+                  </ChatIcon>
+                </ContactCard>
+              )}
+            />
+          </>
         )}
       </MainContainer>
     </Container>

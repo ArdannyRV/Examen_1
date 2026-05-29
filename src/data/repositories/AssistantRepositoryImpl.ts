@@ -11,7 +11,7 @@ export class AssistantRepositoryImpl implements IAssistantRepository {
     history: { role: 'user' | 'model'; parts: { text: string }[] }[]
   ): Promise<string> {
     try {
-      const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+      const model = genAI.getGenerativeModel({ model: 'gemini-pro' });
 
       const chat = model.startChat({
         history: [
