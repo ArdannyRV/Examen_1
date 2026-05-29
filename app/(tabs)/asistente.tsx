@@ -1,9 +1,5 @@
-import { View, Text } from 'react-native';
+import AssistantScreen from '@/src/presentation/screens/adoptante/AssistantScreen';
 
 export default function Asistente() {
-  return (
-    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-      <Text>Asistente</Text>
-    </View>
-  );
+  return <AssistantScreen />;
 }

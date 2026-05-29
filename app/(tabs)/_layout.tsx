@@ -1,16 +1,26 @@
+import { ActivityIndicator, View } from 'react-native';
 import { Tabs } from 'expo-router';
-import { TouchableOpacity, Text } from 'react-native';
+import { TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useAuth } from '@/src/presentation/context/AuthContext';
 import type { ComponentProps } from 'react';
 
 type IoniconsName = ComponentProps<typeof Ionicons>['name'];
 
-const tabs: { name: string; label: string; icon: IoniconsName }[] = [
-  { name: 'lobby', label: 'Explorar', icon: 'search' },
-  { name: 'mapa', label: 'Mapa', icon: 'map' },
-  { name: 'asistente', label: 'Asistente', icon: 'chatbubble-ellipses' },
-  { name: 'solicitudes', label: 'Solicitudes', icon: 'document-text' },
-  { name: 'perfil', label: 'Perfil', icon: 'person' },
+interface TabDef {
+  name: string;
+  label: string;
+  icon: IoniconsName;
+  roles: ('adoptante' | 'refugio')[];
+}
+
+const allTabs: TabDef[] = [
+  { name: 'lobby', label: 'Explorar', icon: 'search', roles: ['adoptante', 'refugio'] },
+  { name: 'mapa', label: 'Mapa', icon: 'map', roles: ['adoptante', 'refugio'] },
+  { name: 'mascotas', label: 'Mascotas', icon: 'paw', roles: ['refugio'] },
+  { name: 'asistente', label: 'Asistente', icon: 'chatbubble-ellipses', roles: ['adoptante'] },
+  { name: 'solicitudes', label: 'Solicitudes', icon: 'document-text', roles: ['adoptante', 'refugio'] },
+  { name: 'perfil', label: 'Perfil', icon: 'person', roles: ['adoptante', 'refugio'] },
 ];
 
 function TabBarButton(props: {
@@ -42,6 +52,18 @@ function TabBarButton(props: {
 }
 
 export default function TabsLayout() {
+  const { role, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#fff' }}>
+        <ActivityIndicator size="large" color="#0a7ea4" />
+      </View>
+    );
+  }
+
+  const visibleTabs = allTabs.filter((t) => role && t.roles.includes(role));
+
   return (
     <Tabs
       screenOptions={{
@@ -69,7 +91,7 @@ export default function TabsLayout() {
         tabBarButton: (props) => <TabBarButton {...props} />,
       }}
     >
-      {tabs.map((tab) => (
+      {visibleTabs.map((tab) => (
         <Tabs.Screen
           key={tab.name}
           name={tab.name}

@@ -3,6 +3,7 @@ import { FlatList, Alert } from 'react-native';
 import styled from 'styled-components/native';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
+import { useAuth } from '@/src/presentation/context/AuthContext';
 import { AuthRepositoryImpl } from '@/src/data/repositories/AuthRepositoryImpl';
 import { LogoutUseCase } from '@/src/domain/usecases/LogoutUseCase';
 
@@ -127,6 +128,20 @@ const CardLabel = styled.Text`
   margin-right: 12px;
 `;
 
+const AdoptButton = styled.TouchableOpacity`
+  background-color: #0a7ea4;
+  border-radius: 10px;
+  padding-vertical: 10px;
+  align-items: center;
+  margin-top: 10px;
+`;
+
+const AdoptButtonText = styled.Text`
+  color: #fff;
+  font-size: 15px;
+  font-weight: 700;
+`;
+
 const categories = ['Todas', 'Perros', 'Gatos', 'Aves', 'Reptiles'];
 
 const pets = [
@@ -157,6 +172,7 @@ const pets = [
 ];
 
 export default function LobbyScreen() {
+  const { role } = useAuth();
   const [search, setSearch] = useState('');
   const [activeCategory, setActiveCategory] = useState('Todas');
 
@@ -169,6 +185,14 @@ export default function LobbyScreen() {
     } catch {
       Alert.alert('Error', 'No se pudo cerrar la sesión');
     }
+  };
+
+  const handleAdopt = (petName: string) => {
+    Alert.alert(
+      'Solicitud enviada',
+      `Has solicitado adoptar a ${petName}. El refugio revisará tu solicitud.`,
+      [{ text: 'OK', onPress: () => router.push('/(tabs)/solicitudes') }]
+    );
   };
 
   const filteredPets = pets.filter((pet) => {
@@ -225,6 +249,11 @@ export default function LobbyScreen() {
                 <CardLabel>Raza: {item.breed}</CardLabel>
                 <CardLabel>Edad: {item.age}</CardLabel>
               </CardRow>
+              {role === 'adoptante' && (
+                <AdoptButton onPress={() => handleAdopt(item.name)}>
+                  <AdoptButtonText>Adoptar</AdoptButtonText>
+                </AdoptButton>
+              )}
             </CardBody>
           </Card>
         )}
