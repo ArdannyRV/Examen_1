@@ -192,7 +192,7 @@ export default function RegisterScreen() {
       const repository = new AuthRepositoryImpl();
       const useCase = new RegisterUseCase(repository);
       await useCase.execute(email, password, name, role, location || undefined);
-      router.replace('/(tabs)/lobby');
+      Alert.alert('Registro Exitoso', 'Verifica tu correo para confirmar tu cuenta', [{ text: 'OK', onPress: () => router.replace('/login') }]);
     } catch (error: unknown) {
       const message =
         error instanceof Error ? error.message : 'Ocurrió un error';

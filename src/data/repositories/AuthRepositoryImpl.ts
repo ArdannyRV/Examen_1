@@ -43,6 +43,7 @@ export class AuthRepositoryImpl implements IAuthRepository {
           role,
           location,
         },
+        emailRedirectTo: 'https://examen-1-omega.vercel.app/confirm',
       },
     });
 
@@ -57,5 +58,17 @@ export class AuthRepositoryImpl implements IAuthRepository {
       role: user.user_metadata?.role ?? 'adoptante',
       location: user.user_metadata?.location,
     };
+  }
+
+  async resetPassword(email: string): Promise<void> {
+    console.log('Iniciando petición de reset para:', email);
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: 'https://examen-1-omega.vercel.app/reset-password',
+    });
+    if (error) {
+      console.error('Supabase Reset Error Completo:', error);
+      throw new Error(error.message);
+    }
+    console.log('Petición de reset enviada con éxito a Supabase.');
   }
 }

@@ -4,7 +4,7 @@ import styled from 'styled-components/native';
 import LottieView from 'lottie-react-native';
 import { router } from 'expo-router';
 import { AuthRepositoryImpl } from '@/src/data/repositories/AuthRepositoryImpl';
-import { LoginUseCase } from '@/src/domain/usecases/LoginUseCase';
+import { ResetPasswordUseCase } from '@/src/domain/usecases/ResetPasswordUseCase';
 import AnimatedBackground from '@/src/presentation/components/ui/AnimatedBackground';
 import { GlassCard } from '@/src/presentation/components/ui/Card';
 import Button from '@/src/presentation/components/ui/Button';
@@ -43,27 +43,25 @@ const LinkText = styled.Text`
   font-weight: 500;
 `;
 
-export default function LoginScreen() {
+export default function NewPasswordScreen() {
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const handleLogin = async () => {
-    if (!email.trim() || !password.trim()) {
-      Alert.alert('Error', 'Todos los campos son obligatorios.');
+  const handleReset = async () => {
+    if (!email.trim()) {
+      Alert.alert('Error', 'Ingresa tu correo electrónico.');
       return;
     }
 
     setLoading(true);
     try {
       const repository = new AuthRepositoryImpl();
-      const useCase = new LoginUseCase(repository);
-      await useCase.execute(email, password);
-      router.replace('/(tabs)/lobby');
-    } catch (error: unknown) {
-      const message =
-        error instanceof Error ? error.message : 'Ocurrió un error';
-      Alert.alert('Error', message);
+      const useCase = new ResetPasswordUseCase(repository);
+      await useCase.execute(email);
+      Alert.alert('Enlace Enviado', 'Revisa tu correo para cambiar tu contraseña con el apartado de Vercel.', [{ text: 'Entendido', onPress: () => router.back() }]);
+    } catch (error: any) {
+      console.log('Error atrapado en la UI:', error);
+      Alert.alert('Error al enviar', error.message || 'Verifica que el correo sea correcto y vuelve a intentarlo.');
     } finally {
       setLoading(false);
     }
@@ -74,8 +72,8 @@ export default function LoginScreen() {
       <AnimatedBackground />
       <Scroll>
         <GlassCard>
-          <Title>Iniciar Sesión</Title>
-          <Subtitle>Bienvenido de vuelta a PetAdopt</Subtitle>
+          <Title>Recuperar Contraseña</Title>
+          <Subtitle>Te enviaremos un enlace para restablecerla</Subtitle>
 
           <LottieView
             source={require('../../../../assets/animations/decoracion_animales.json')}
@@ -94,24 +92,12 @@ export default function LoginScreen() {
             autoCapitalize="none"
           />
 
-          <Input
-            label="Contraseña"
-            placeholder="Tu contraseña"
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry
-          />
-
-          <Button loading={loading} onPress={handleLogin} style={{ marginTop: 24 }}>
-            Iniciar Sesión
+          <Button loading={loading} onPress={handleReset} style={{ marginTop: 24 }}>
+            Enviar enlace de recuperación
           </Button>
 
-          <LinkText onPress={() => router.push('/(auth)/new-password')}>
-            ¿Olvidaste tu contraseña?
-          </LinkText>
-
-          <LinkText onPress={() => router.replace('/register')}>
-            ¿No tienes cuenta? Regístrate
+          <LinkText onPress={() => router.back()}>
+            Volver al inicio de sesión
           </LinkText>
         </GlassCard>
       </Scroll>
