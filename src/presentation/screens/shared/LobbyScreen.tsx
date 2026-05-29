@@ -283,6 +283,7 @@ export default function LobbyScreen() {
             data={filteredPets}
             keyExtractor={(item) => item.id}
             numColumns={2}
+            style={{ flex: 1 }}
             contentContainerStyle={{ flexGrow: 1, paddingBottom: 120, paddingTop: 16 }}
             renderItem={({ item }) => (
               <PetCard>

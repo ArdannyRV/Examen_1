@@ -257,6 +257,7 @@ export default function RequestsRefugioScreen() {
             <FlatList
               data={requests}
               keyExtractor={(item) => item.id}
+              style={{ flex: 1 }}
               contentContainerStyle={{ paddingTop: 16, paddingBottom: 120 }}
               renderItem={({ item }) => {
                 const isExpanded = expandedId === item.id;

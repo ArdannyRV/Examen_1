@@ -127,6 +127,7 @@ export default function AssistantScreen() {
         <MessageList
           data={messages}
           keyExtractor={(item: Message) => item.id}
+          style={{ flex: 1 }}
           contentContainerStyle={{ paddingVertical: 16, paddingBottom: 120 }}
           renderItem={({ item }: { item: Message }) => (
             <BubbleRow isUser={item.isUser}>

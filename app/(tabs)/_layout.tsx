@@ -32,7 +32,7 @@ function TabBarButton(props: {
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: focused ? theme.colors.primary : 'transparent',
+        backgroundColor: focused ? 'rgba(16, 185, 129, 0.1)' : 'transparent',
         borderRadius: 20,
         marginHorizontal: 4,
         marginVertical: 8,
@@ -64,8 +64,8 @@ export default function TabsLayout() {
         headerStyle: { backgroundColor: 'transparent', elevation: 0, shadowOpacity: 0 },
         headerTransparent: false,
         tabBarShowLabel: true,
-        tabBarActiveTintColor: '#fff',
-        tabBarInactiveTintColor: theme.colors.textLight,
+        tabBarActiveTintColor: theme.colors.primary,
+        tabBarInactiveTintColor: theme.colors.textMuted,
         tabBarLabelStyle: {
           fontSize: 11,
           fontWeight: '600',
@@ -99,11 +99,11 @@ export default function TabsLayout() {
             options={{
               title: tab.label,
               href,
-              tabBarIcon: ({ focused, color }) => (
+              tabBarIcon: ({ color }) => (
                 <Ionicons
                   name={tab.icon}
                   size={22}
-                  color={focused ? '#fff' : color}
+                  color={color}
                 />
               ),
             }}

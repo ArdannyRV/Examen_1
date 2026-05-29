@@ -438,6 +438,7 @@ export default function ManagePetsScreen() {
             <FlatList
               data={pets}
               keyExtractor={(item) => item.id}
+              style={{ flex: 1 }}
               contentContainerStyle={{ paddingTop: 8, paddingBottom: 120 }}
               renderItem={({ item }) => (
                 <Card>

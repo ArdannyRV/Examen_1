@@ -19,7 +19,7 @@ export const MainContainer = styled.View`
   border-top-right-radius: 40px;
   padding-horizontal: ${({ theme }) => theme.spacing.lg}px;
   padding-top: ${({ theme }) => theme.spacing.lg}px;
-  padding-bottom: 80px;
+  padding-bottom: 0;          
   overflow: hidden;
   shadow-color: #000;
   shadow-offset: 0px -4px;

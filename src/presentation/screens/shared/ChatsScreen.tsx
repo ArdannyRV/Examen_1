@@ -98,6 +98,7 @@ export default function ChatsScreen() {
         <FlatList
           data={mockChats}
           keyExtractor={(item) => item.id}
+          style={{ flex: 1 }}
           contentContainerStyle={{ flexGrow: 1, paddingTop: 16, paddingBottom: 120 }}
           renderItem={({ item }) => (
             <Card activeOpacity={0.95}>
