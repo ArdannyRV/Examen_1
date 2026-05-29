@@ -15,7 +15,7 @@ import { MainContainer } from '@/src/presentation/components/ui/Card';
 import type { Pet } from '@/src/domain/entities/Pet';
 
 const screenWidth = Dimensions.get('window').width;
-const cardWidth = (screenWidth - 56) / 2;
+const cardWidth = (screenWidth - 76) / 2;
 
 const Container = styled.View`
   flex: 1;
