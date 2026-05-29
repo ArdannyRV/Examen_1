@@ -12,7 +12,7 @@
       "supportsTablet": true
     },
     "android": {
-      "package": "com.esauv.petadopt",
+      "package": "com.lastcard.petadopt",
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
@@ -65,9 +65,9 @@
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "8eb0185a-47f1-4ab0-8f9f-c28dfd94df4d"
+        "projectId": "71be7c66-2d3f-4fd5-9148-528904be3b3c"
       }
     },
-    "owner": "esauv"
+    "owner": "lastcard"
   }
 }
