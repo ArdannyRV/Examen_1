@@ -22,6 +22,11 @@ export class AuthRepositoryImpl implements IAuthRepository {
     };
   }
 
+  async logout(): Promise<void> {
+    const { error } = await supabase.auth.signOut();
+    if (error) throw new Error(error.message);
+  }
+
   async register(
     email: string,
     password: string,

@@ -1,6 +1,10 @@
 import { useState } from 'react';
-import { FlatList } from 'react-native';
+import { FlatList, Alert } from 'react-native';
 import styled from 'styled-components/native';
+import { Ionicons } from '@expo/vector-icons';
+import { router } from 'expo-router';
+import { AuthRepositoryImpl } from '@/src/data/repositories/AuthRepositoryImpl';
+import { LogoutUseCase } from '@/src/domain/usecases/LogoutUseCase';
 
 const Container = styled.View`
   flex: 1;
@@ -16,11 +20,26 @@ const Header = styled.View`
   border-bottom-right-radius: 24px;
 `;
 
+const HeaderRow = styled.View`
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+`;
+
 const HeaderTitle = styled.Text`
   font-size: 24px;
   font-weight: 700;
   color: #fff;
-  margin-bottom: 16px;
+`;
+
+const LogoutButton = styled.TouchableOpacity`
+  width: 40px;
+  height: 40px;
+  border-radius: 20px;
+  background-color: rgba(255, 255, 255, 0.2);
+  justify-content: center;
+  align-items: center;
 `;
 
 const SearchInput = styled.TextInput`
@@ -141,6 +160,17 @@ export default function LobbyScreen() {
   const [search, setSearch] = useState('');
   const [activeCategory, setActiveCategory] = useState('Todas');
 
+  const handleLogout = async () => {
+    try {
+      const repository = new AuthRepositoryImpl();
+      const useCase = new LogoutUseCase(repository);
+      await useCase.execute();
+      router.replace('/(auth)/login');
+    } catch {
+      Alert.alert('Error', 'No se pudo cerrar la sesión');
+    }
+  };
+
   const filteredPets = pets.filter((pet) => {
     const matchesSearch =
       pet.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -153,7 +183,12 @@ export default function LobbyScreen() {
   return (
     <Container>
       <Header>
-        <HeaderTitle>PetAdopt</HeaderTitle>
+        <HeaderRow>
+          <HeaderTitle>PetAdopt</HeaderTitle>
+          <LogoutButton onPress={handleLogout}>
+            <Ionicons name="log-out-outline" size={22} color="#fff" />
+          </LogoutButton>
+        </HeaderRow>
         <SearchInput
           placeholder="Buscar por raza o nombre..."
           placeholderTextColor="rgba(255,255,255,0.6)"

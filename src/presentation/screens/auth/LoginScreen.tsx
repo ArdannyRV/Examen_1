@@ -96,9 +96,7 @@ export default function LoginScreen() {
       const repository = new AuthRepositoryImpl();
       const useCase = new LoginUseCase(repository);
       await useCase.execute(email, password);
-      Alert.alert('Inicio de sesión exitoso', 'Bienvenido a PetAdopt', [
-        { text: 'OK' },
-      ]);
+      router.replace('/(tabs)/lobby');
     } catch (error: unknown) {
       const message =
         error instanceof Error ? error.message : 'Ocurrió un error';
