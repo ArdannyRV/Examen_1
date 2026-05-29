@@ -291,7 +291,7 @@ export default function RegisterScreen() {
             Registrarse
           </Button>
 
-          <LinkText onPress={() => router.replace('/login')}>
+          <LinkText onPress={() => router.replace('/(auth)/login')}>
             ¿Ya tienes cuenta? Inicia sesión
           </LinkText>
         </GlassCard>
