@@ -1,11 +1,14 @@
-import { useState } from 'react';
-import { FlatList, Alert } from 'react-native';
+import { useState, useEffect } from 'react';
+import { FlatList, Alert, ActivityIndicator } from 'react-native';
 import styled from 'styled-components/native';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useAuth } from '@/src/presentation/context/AuthContext';
+import { PetRepositoryImpl } from '@/src/data/repositories/PetRepositoryImpl';
+import { GetAllPetsUseCase } from '@/src/domain/usecases/GetAllPetsUseCase';
 import { AuthRepositoryImpl } from '@/src/data/repositories/AuthRepositoryImpl';
 import { LogoutUseCase } from '@/src/domain/usecases/LogoutUseCase';
+import type { Pet } from '@/src/domain/entities/Pet';
 
 const Container = styled.View`
   flex: 1;
@@ -95,15 +98,16 @@ const Card = styled.View`
   overflow: hidden;
 `;
 
-const CardImage = styled.View`
+const CardImage = styled.Image`
   height: 160px;
-  background-color: #e0e7ef;
+  width: 100%;
 `;
 
-const CardImageText = styled.Text`
-  font-size: 40px;
-  text-align: center;
-  line-height: 160px;
+const CardImageFallback = styled.View`
+  height: 160px;
+  background-color: #e0e7ef;
+  justify-content: center;
+  align-items: center;
 `;
 
 const CardBody = styled.View`
@@ -142,39 +146,50 @@ const AdoptButtonText = styled.Text`
   font-weight: 700;
 `;
 
-const categories = ['Todas', 'Perros', 'Gatos', 'Aves', 'Reptiles'];
+const Loader = styled.View`
+  flex: 1;
+  justify-content: center;
+  align-items: center;
+`;
 
-const pets = [
-  {
-    id: '1',
-    name: 'Luna',
-    breed: 'Golden Retriever',
-    age: '2 años',
-    emoji: '🐕',
-    category: 'Perros',
-  },
-  {
-    id: '2',
-    name: 'Milo',
-    breed: 'Gato Persa',
-    age: '3 años',
-    emoji: '🐈',
-    category: 'Gatos',
-  },
-  {
-    id: '3',
-    name: 'Paco',
-    breed: 'Periquito Australiano',
-    age: '1 año',
-    emoji: '🐦',
-    category: 'Aves',
-  },
-];
+const EmptyState = styled.View`
+  flex: 1;
+  justify-content: center;
+  align-items: center;
+  padding-horizontal: 40px;
+`;
+
+const EmptyText = styled.Text`
+  font-size: 16px;
+  color: #687076;
+  text-align: center;
+  margin-top: 12px;
+`;
+
+const categories = ['Todos', 'Perros', 'Gatos', 'Aves', 'Reptiles'];
 
 export default function LobbyScreen() {
   const { role } = useAuth();
   const [search, setSearch] = useState('');
-  const [activeCategory, setActiveCategory] = useState('Todas');
+  const [activeCategory, setActiveCategory] = useState('Todos');
+  const [pets, setPets] = useState<Pet[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadPets = async () => {
+      try {
+        const repository = new PetRepositoryImpl();
+        const useCase = new GetAllPetsUseCase(repository);
+        const data = await useCase.execute();
+        setPets(data);
+      } catch {
+        Alert.alert('Error', 'No se pudieron cargar las mascotas');
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadPets();
+  }, []);
 
   const handleLogout = async () => {
     try {
@@ -200,9 +215,24 @@ export default function LobbyScreen() {
       pet.name.toLowerCase().includes(search.toLowerCase()) ||
       pet.breed.toLowerCase().includes(search.toLowerCase());
     const matchesCategory =
-      activeCategory === 'Todas' || pet.category === activeCategory;
+      activeCategory === 'Todos' || pet.species === activeCategory;
     return matchesSearch && matchesCategory;
   });
+
+  if (loading) {
+    return (
+      <Container>
+        <Header>
+          <HeaderRow>
+            <HeaderTitle>PetAdopt</HeaderTitle>
+          </HeaderRow>
+        </Header>
+        <Loader>
+          <ActivityIndicator size="large" color="#0a7ea4" />
+        </Loader>
+      </Container>
+    );
+  }
 
   return (
     <Container>
@@ -235,31 +265,42 @@ export default function LobbyScreen() {
 
       <SectionTitle>Mascotas disponibles</SectionTitle>
 
-      <FlatList
-        data={filteredPets}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <Card>
-            <CardImage>
-              <CardImageText>{item.emoji}</CardImageText>
-            </CardImage>
-            <CardBody>
-              <CardName>{item.name}</CardName>
-              <CardRow>
-                <CardLabel>Raza: {item.breed}</CardLabel>
-                <CardLabel>Edad: {item.age}</CardLabel>
-              </CardRow>
-              {role === 'adoptante' && (
-                <AdoptButton onPress={() => handleAdopt(item.name)}>
-                  <AdoptButtonText>Adoptar</AdoptButtonText>
-                </AdoptButton>
+      {filteredPets.length === 0 ? (
+        <EmptyState>
+          <Ionicons name="paw-outline" size={64} color="#d0d5dd" />
+          <EmptyText>No se encontraron mascotas con los filtros actuales.</EmptyText>
+        </EmptyState>
+      ) : (
+        <FlatList
+          data={filteredPets}
+          keyExtractor={(item) => item.id}
+          renderItem={({ item }) => (
+            <Card>
+              {item.image_url ? (
+                <CardImage source={{ uri: item.image_url }} />
+              ) : (
+                <CardImageFallback>
+                  <Ionicons name="paw" size={48} color="#9ca3af" />
+                </CardImageFallback>
               )}
-            </CardBody>
-          </Card>
-        )}
-        contentContainerStyle={{ paddingBottom: 24 }}
-        showsVerticalScrollIndicator={false}
-      />
+              <CardBody>
+                <CardName>{item.name}</CardName>
+                <CardRow>
+                  <CardLabel>Raza: {item.breed}</CardLabel>
+                  <CardLabel>Edad: {item.age}</CardLabel>
+                </CardRow>
+                {role === 'adoptante' && (
+                  <AdoptButton onPress={() => handleAdopt(item.name)}>
+                    <AdoptButtonText>Adoptar</AdoptButtonText>
+                  </AdoptButton>
+                )}
+              </CardBody>
+            </Card>
+          )}
+          contentContainerStyle={{ paddingBottom: 24 }}
+          showsVerticalScrollIndicator={false}
+        />
+      )}
     </Container>
   );
 }

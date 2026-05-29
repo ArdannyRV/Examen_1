@@ -1,8 +1,10 @@
-import { useState } from 'react';
-import { FlatList, Alert } from 'react-native';
+import { useState, useEffect } from 'react';
+import { FlatList, Alert, ActivityIndicator } from 'react-native';
 import styled from 'styled-components/native';
 import { Ionicons } from '@expo/vector-icons';
-import type { AdoptionRequest } from '@/src/domain/entities/AdoptionRequest';
+import { useAuth } from '@/src/presentation/context/AuthContext';
+import { RequestRepositoryImpl } from '@/src/data/repositories/RequestRepositoryImpl';
+import { GetRequestsUseCase } from '@/src/domain/usecases/GetRequestsUseCase';
 
 const Container = styled.View`
   flex: 1;
@@ -177,70 +179,91 @@ const EmptyText = styled.Text`
   margin-top: 12px;
 `;
 
-const initialRequests: AdoptionRequest[] = [
-  {
-    id: 'rq1',
-    pet_id: '1',
-    adoptante_id: 'a1',
-    status: 'pendiente',
-    pet_name: 'Luna',
-    pet_breed: 'Golden Retriever',
-    adoptante_name: 'María García',
-    adoptante_experience:
-      'He tenido perros desde pequeño. Actualmente vivo en una casa con patio grande y trabajo desde casa, por lo que puedo dedicarle mucho tiempo. Estoy buscando un compañero para salir a correr.',
-  },
-  {
-    id: 'rq2',
-    pet_id: '2',
-    adoptante_id: 'a2',
-    status: 'pendiente',
-    pet_name: 'Milo',
-    pet_breed: 'Gato Persa',
-    adoptante_name: 'Carlos López',
-    adoptante_experience:
-      'Vivo en un departamento amplio. He tenido gatos antes y conozco sus cuidados. Busco un gato tranquilo que se adapte a la vida en interiores.',
-  },
-];
+const Loader = styled.View`
+  flex: 1;
+  justify-content: center;
+  align-items: center;
+`;
 
 export default function RequestsRefugioScreen() {
-  const [requests, setRequests] = useState<AdoptionRequest[]>(initialRequests);
+  const { user } = useAuth();
+  const [requests, setRequests] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
-  const handleAccept = (id: string) => {
-    setRequests((prev) =>
-      prev.map((r) => (r.id === id ? { ...r, status: 'aprobada' } : r))
-    );
-    Alert.alert('Solicitud aprobada', 'El adoptante será notificado.');
+  useEffect(() => {
+    const load = async () => {
+      if (!user) return;
+      try {
+        const repository = new RequestRepositoryImpl();
+        const useCase = new GetRequestsUseCase(repository);
+        const data = await useCase.execute(user.id, 'refugio');
+        setRequests(data);
+      } catch {
+        Alert.alert('Error', 'No se pudieron cargar las solicitudes');
+      } finally {
+        setLoading(false);
+      }
+    };
+    load();
+  }, [user]);
+
+  const handleAccept = async (id: string) => {
+    try {
+      const repo = new RequestRepositoryImpl();
+      await repo.updateStatus(id, 'aprobada');
+      setRequests((prev) =>
+        prev.map((r) => (r.id === id ? { ...r, status: 'aprobada' } : r))
+      );
+      Alert.alert('Solicitud aprobada', 'El adoptante será notificado.');
+    } catch {
+      Alert.alert('Error', 'No se pudo actualizar la solicitud');
+    }
   };
 
-  const handleReject = (id: string) => {
-    setRequests((prev) =>
-      prev.map((r) => (r.id === id ? { ...r, status: 'rechazada' } : r))
-    );
-    Alert.alert('Solicitud rechazada', 'El adoptante será notificado.');
+  const handleReject = async (id: string) => {
+    try {
+      const repo = new RequestRepositoryImpl();
+      await repo.updateStatus(id, 'rechazada');
+      setRequests((prev) =>
+        prev.map((r) => (r.id === id ? { ...r, status: 'rechazada' } : r))
+      );
+      Alert.alert('Solicitud rechazada', 'El adoptante será notificado.');
+    } catch {
+      Alert.alert('Error', 'No se pudo actualizar la solicitud');
+    }
   };
 
   const toggleExpand = (id: string) => {
     setExpandedId(expandedId === id ? null : id);
   };
 
-  const pendingCount = requests.filter((r) => r.status === 'pendiente').length;
+  const pendingCount = requests.filter((r: any) => r.status === 'pendiente').length;
+
+  if (loading) {
+    return (
+      <Container>
+        <Header>
+          <HeaderTitle>Solicitudes</HeaderTitle>
+        </Header>
+        <Loader>
+          <ActivityIndicator size="large" color="#0a7ea4" />
+        </Loader>
+      </Container>
+    );
+  }
 
   return (
     <Container>
       <Header>
         <HeaderTitle>Solicitudes</HeaderTitle>
-        <HeaderCount>
-          {pendingCount} solicitudes pendientes
-        </HeaderCount>
+        <HeaderCount>{pendingCount} solicitudes pendientes</HeaderCount>
       </Header>
 
       {requests.length === 0 ? (
         <EmptyState>
           <Ionicons name="document-text-outline" size={64} color="#d0d5dd" />
-          <EmptyText>
-            No hay solicitudes de adopción por el momento.
-          </EmptyText>
+          <EmptyText>No hay solicitudes de adopción por el momento.</EmptyText>
         </EmptyState>
       ) : (
         <FlatList
@@ -249,6 +272,9 @@ export default function RequestsRefugioScreen() {
           contentContainerStyle={{ paddingTop: 20, paddingBottom: 24 }}
           renderItem={({ item }) => {
             const isExpanded = expandedId === item.id;
+            const adoptanteName = item.adoptante?.name ?? 'Desconocido';
+            const petName = item.pet?.name ?? 'Mascota';
+            const petBreed = item.pet?.breed ?? '';
 
             return (
               <Card onPress={() => toggleExpand(item.id)} activeOpacity={0.95}>
@@ -257,10 +283,8 @@ export default function RequestsRefugioScreen() {
                     <Ionicons name="person" size={22} color="#0a7ea4" />
                   </AvatarCircle>
                   <SummaryInfo>
-                    <SummaryName>{item.adoptante_name}</SummaryName>
-                    <SummaryPet>
-                      {item.pet_name} · {item.pet_breed}
-                    </SummaryPet>
+                    <SummaryName>{adoptanteName}</SummaryName>
+                    <SummaryPet>{petName} · {petBreed}</SummaryPet>
                   </SummaryInfo>
                   <Badge status={item.status}>
                     <BadgeText status={item.status}>
@@ -277,7 +301,7 @@ export default function RequestsRefugioScreen() {
                   <ExpandedSection>
                     <Divider />
                     <DetailLabel>Experiencia del solicitante</DetailLabel>
-                    <DetailText>{item.adoptante_experience}</DetailText>
+                    <DetailText>{item.adoptante?.experience ?? 'Sin experiencia registrada'}</DetailText>
 
                     {item.status === 'pendiente' && (
                       <ActionRow>

@@ -1,7 +1,10 @@
-import { useState } from 'react';
-import { FlatList } from 'react-native';
+import { useState, useEffect } from 'react';
+import { FlatList, Alert, ActivityIndicator } from 'react-native';
 import styled from 'styled-components/native';
 import { Ionicons } from '@expo/vector-icons';
+import { useAuth } from '@/src/presentation/context/AuthContext';
+import { RequestRepositoryImpl } from '@/src/data/repositories/RequestRepositoryImpl';
+import { GetRequestsUseCase } from '@/src/domain/usecases/GetRequestsUseCase';
 
 const Container = styled.View`
   flex: 1;
@@ -110,20 +113,46 @@ const EmptyText = styled.Text`
   margin-top: 12px;
 `;
 
-interface RequestItem {
-  id: string;
-  petName: string;
-  petBreed: string;
-  status: 'pendiente' | 'aprobada' | 'rechazada';
-}
-
-const mockRequests: RequestItem[] = [
-  { id: '1', petName: 'Luna', petBreed: 'Golden Retriever', status: 'pendiente' },
-  { id: '2', petName: 'Milo', petBreed: 'Gato Persa', status: 'aprobada' },
-];
+const Loader = styled.View`
+  flex: 1;
+  justify-content: center;
+  align-items: center;
+`;
 
 export default function RequestsAdoptanteScreen() {
-  const [requests] = useState<RequestItem[]>(mockRequests);
+  const { user } = useAuth();
+  const [requests, setRequests] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const load = async () => {
+      if (!user) return;
+      try {
+        const repository = new RequestRepositoryImpl();
+        const useCase = new GetRequestsUseCase(repository);
+        const data = await useCase.execute(user.id, 'adoptante');
+        setRequests(data);
+      } catch {
+        Alert.alert('Error', 'No se pudieron cargar las solicitudes');
+      } finally {
+        setLoading(false);
+      }
+    };
+    load();
+  }, [user]);
+
+  if (loading) {
+    return (
+      <Container>
+        <Header>
+          <HeaderTitle>Mis Solicitudes</HeaderTitle>
+        </Header>
+        <Loader>
+          <ActivityIndicator size="large" color="#0a7ea4" />
+        </Loader>
+      </Container>
+    );
+  }
 
   return (
     <Container>
@@ -148,8 +177,8 @@ export default function RequestsAdoptanteScreen() {
                 <Ionicons name="paw" size={28} color="#9ca3af" />
               </CardAvatar>
               <CardBody>
-                <CardName>{item.petName}</CardName>
-                <CardBreed>{item.petBreed}</CardBreed>
+                <CardName>{item.pet?.name ?? 'Mascota'}</CardName>
+                <CardBreed>{item.pet?.breed ?? ''}</CardBreed>
                 <Badge status={item.status}>
                   <BadgeText status={item.status}>
                     {item.status === 'pendiente'

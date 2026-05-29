@@ -20,29 +20,36 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     loading: true,
   });
 
+  const fetchProfile = async (userId: string) => {
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', userId)
+      .single();
+
+    return (profile?.role as 'adoptante' | 'refugio') ?? null;
+  };
+
+  const refreshState = async () => {
+    const { data } = await supabase.auth.getUser();
+    const user = data.user ?? null;
+
+    if (user) {
+      const role = await fetchProfile(user.id);
+      setState({ user, role, loading: false });
+    } else {
+      setState({ user: null, role: null, loading: false });
+    }
+  };
+
   useEffect(() => {
-    const fetchUser = async () => {
-      const { data } = await supabase.auth.getUser();
-      const user = data.user ?? null;
+    refreshState();
 
-      if (user) {
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('role')
-          .eq('id', user.id)
-          .single();
+    const { data: listener } = supabase.auth.onAuthStateChange(() => {
+      refreshState();
+    });
 
-        setState({
-          user,
-          role: (profile?.role as 'adoptante' | 'refugio') ?? null,
-          loading: false,
-        });
-      } else {
-        setState({ user: null, role: null, loading: false });
-      }
-    };
-
-    fetchUser();
+    return () => listener?.subscription.unsubscribe();
   }, []);
 
   return <AuthContext.Provider value={state}>{children}</AuthContext.Provider>;

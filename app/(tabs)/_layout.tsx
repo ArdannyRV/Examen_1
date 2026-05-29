@@ -7,20 +7,13 @@ import type { ComponentProps } from 'react';
 
 type IoniconsName = ComponentProps<typeof Ionicons>['name'];
 
-interface TabDef {
-  name: string;
-  label: string;
-  icon: IoniconsName;
-  roles: ('adoptante' | 'refugio')[];
-}
-
-const allTabs: TabDef[] = [
-  { name: 'lobby', label: 'Explorar', icon: 'search', roles: ['adoptante', 'refugio'] },
-  { name: 'mapa', label: 'Mapa', icon: 'map', roles: ['adoptante', 'refugio'] },
-  { name: 'mascotas', label: 'Mascotas', icon: 'paw', roles: ['refugio'] },
-  { name: 'asistente', label: 'Asistente', icon: 'chatbubble-ellipses', roles: ['adoptante'] },
-  { name: 'solicitudes', label: 'Solicitudes', icon: 'document-text', roles: ['adoptante', 'refugio'] },
-  { name: 'perfil', label: 'Perfil', icon: 'person', roles: ['adoptante', 'refugio'] },
+const tabs: { name: string; label: string; icon: IoniconsName }[] = [
+  { name: 'lobby', label: 'Explorar', icon: 'search' },
+  { name: 'mapa', label: 'Mapa', icon: 'map' },
+  { name: 'mascotas', label: 'Mascotas', icon: 'paw' },
+  { name: 'asistente', label: 'Asistente', icon: 'chatbubble-ellipses' },
+  { name: 'solicitudes', label: 'Solicitudes', icon: 'document-text' },
+  { name: 'perfil', label: 'Perfil', icon: 'person' },
 ];
 
 function TabBarButton(props: {
@@ -62,8 +55,6 @@ export default function TabsLayout() {
     );
   }
 
-  const visibleTabs = allTabs.filter((t) => role && t.roles.includes(role));
-
   return (
     <Tabs
       screenOptions={{
@@ -91,22 +82,30 @@ export default function TabsLayout() {
         tabBarButton: (props) => <TabBarButton {...props} />,
       }}
     >
-      {visibleTabs.map((tab) => (
-        <Tabs.Screen
-          key={tab.name}
-          name={tab.name}
-          options={{
-            title: tab.label,
-            tabBarIcon: ({ focused, color }) => (
-              <Ionicons
-                name={tab.icon}
-                size={22}
-                color={focused ? '#fff' : color}
-              />
-            ),
-          }}
-        />
-      ))}
+      {tabs.map((tab) => {
+        let href: string | null = `/${tab.name}`;
+
+        if (tab.name === 'mascotas' && role !== 'refugio') href = null;
+        if (tab.name === 'asistente' && role !== 'adoptante') href = null;
+
+        return (
+          <Tabs.Screen
+            key={tab.name}
+            name={tab.name}
+            options={{
+              title: tab.label,
+              href,
+              tabBarIcon: ({ focused, color }) => (
+                <Ionicons
+                  name={tab.icon}
+                  size={22}
+                  color={focused ? '#fff' : color}
+                />
+              ),
+            }}
+          />
+        );
+      })}
     </Tabs>
   );
 }

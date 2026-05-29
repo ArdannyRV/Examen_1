@@ -5,7 +5,7 @@ export interface Pet {
   species: string;
   breed: string;
   age: string;
-  size: 'pequeño' | 'mediano' | 'grande';
+  size: 'Pequeño' | 'Mediano' | 'Grande';
   description: string;
   image_url?: string;
 }
